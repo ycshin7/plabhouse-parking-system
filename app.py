@@ -344,7 +344,6 @@ if st.session_state.page == "main":
     }}
     
     /* Reset font size for subsequent lines (Description) */
-    /* Reset font size for subsequent lines (Description) */
     .stButton > button[kind="secondary"] p {{
         font-size: 13px !important; /* Reduced size */
         font-weight: 400 !important; /* Normal weight */
