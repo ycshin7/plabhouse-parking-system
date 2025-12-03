@@ -344,14 +344,15 @@ if st.session_state.page == "main":
     }}
     
     /* Reset font size for subsequent lines (Description) */
+    /* Reset font size for subsequent lines (Description) */
     .stButton > button[kind="secondary"] p {{
-        font-size: 11px; /* Half of title size (22px) */
-        font-weight: 400; /* Normal weight */
-        color: #191f28; /* Black color */
-        line-height: 1.4;
-        display: block;
-        width: 100%;
-        margin: 0; /* Remove default margins */
+        font-size: 13px !important; /* Reduced size */
+        font-weight: 400 !important; /* Normal weight */
+        color: #191f28 !important; /* Black color */
+        line-height: 1.4 !important;
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
     }}
     
     /* Center Align Metrics */
