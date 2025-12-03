@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import pandas as pd
 from datetime import datetime, timedelta
+import pytz # Required for timezone handling
 import os
 import textwrap
 
@@ -232,64 +233,6 @@ def local_css():
             padding: 24px;
         }
     </style>
-    """, unsafe_allow_html=True)
-
-# --- Functions ---
-def load_json(filename, default):
-    if not os.path.exists(filename):
-        return default
-    try:
-        with open(filename, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return default
-
-def save_json(filename, data):
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-def get_target_date():
-    now = datetime.now()
-    # 08:01 ~ Next Day 07:59 -> Target is Next Day
-    if now.hour > 8 or (now.hour == 8 and now.minute >= 1):
-        target = (now + timedelta(days=1)).date()
-    else:
-        target = now.date()
-    
-    # Skip weekends: Saturday (5) -> Monday, Sunday (6) -> Monday
-    weekday = target.weekday()
-    if weekday == 5:  # Saturday
-        target = target + timedelta(days=2)
-    elif weekday == 6:  # Sunday
-        target = target + timedelta(days=1)
-    
-    return target
-
-def get_phase():
-    return "ALWAYS_OPEN"
-
-# --- Initialize Session State ---
-if "page" not in st.session_state:
-    st.session_state.page = "main"
-
-if "show_staff_form" not in st.session_state:
-    st.session_state.show_staff_form = False
-
-if "show_guest_form" not in st.session_state:
-    st.session_state.show_guest_form = False
-
-# --- Main App ---
-st.set_page_config(page_title="플랩하우스 주차 시스템", page_icon="🅿️", layout="wide")
-local_css()
-
-# Load Data
-target_date = get_target_date()
-phase = get_phase()
-users = load_json(USERS_FILE, [])
-history = load_json(HISTORY_FILE, [])
-requests_data = load_json(REQUESTS_FILE, {
-    "target_date": str(target_date),
-    "applicants": [],
     "guests": [],
     "sante_opt_out": False
 })
