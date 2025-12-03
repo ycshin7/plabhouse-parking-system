@@ -646,6 +646,36 @@ if st.session_state.page == "main":
     div[data-testid="stMetricValue"] {
         justify-content: center;
     }
+    
+    /* Mobile Responsive - Force horizontal layout */
+    @media (max-width: 768px) {
+        div[data-testid="column"] {
+            flex: 1 1 30% !important;
+            min-width: 30% !important;
+            max-width: 33% !important;
+        }
+        
+        .stButton > button[kind="secondary"] {
+            height: 140px !important;
+            font-size: 11px !important;
+            padding: 0 5px !important;
+        }
+        
+        .stButton > button[kind="secondary"] p::first-line {
+            font-size: 16px !important;
+            line-height: 1.8 !important;
+        }
+        
+        .stButton > button[kind="secondary"] p {
+            font-size: 10px !important;
+            line-height: 1.3 !important;
+        }
+        
+        .block-container {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+    }
     </style>
     """
     st.markdown(css_static, unsafe_allow_html=True)
@@ -859,7 +889,7 @@ else:
     with tab1:
         st.markdown("### 배정 결과")
         
-        today_str = str(datetime.now().date())
+        today_str = str(get_kst_time().date())
         history_today = next((h for h in history if h["date"] == today_str), None)
         
         if history_today:
