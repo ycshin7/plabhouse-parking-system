@@ -1,111 +1,111 @@
 [
-  {
-    "name": "뚜비",
-    "car_type": "SUV",
-    "last_parked_date": "2025-11-27",
-    "car_detail": "",
-    "car_plate": "55로5301",
-    "car_number": "55로5301",
-    "car_details": ""
-  },
-  {
-    "name": "시안",
-    "car_type": "SEDAN",
-    "last_parked_date": "2025-12-02",
-    "car_detail": "비엔츠",
-    "car_plate": ""
-  },
-  {
-    "name": "라크",
-    "car_type": "SUV",
-    "last_parked_date": "2025-11-28",
-    "car_detail": "르노",
-    "car_plate": ""
-  },
-  {
-    "name": "히로",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "번즈",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "아키",
-    "car_type": "SEDAN",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "뉴진",
-    "car_type": "SEDAN",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": "2025-12-02",
-    "car_number": "",
-    "car_details": ""
-  },
-  {
-    "name": "피르",
-    "car_type": "SEDAN",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "피치",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "루니",
-    "car_type": "SEDAN",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "상떼",
-    "car_type": "SEDAN",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "키커",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "뿌까",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "솔트",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  },
-  {
-    "name": "후크",
-    "car_type": "SUV",
-    "car_detail": "",
-    "car_plate": "",
-    "last_parked_date": null
-  }
+    {
+        "name": "뚜비",
+        "car_type": "SUV",
+        "last_parked_date": "2025-11-27",
+        "car_detail": "",
+        "car_plate": "55로5301",
+        "car_number": "55로5301",
+        "car_details": ""
+    },
+    {
+        "name": "시안",
+        "car_type": "SEDAN",
+        "last_parked_date": "2025-12-02",
+        "car_detail": "비엔츠",
+        "car_plate": ""
+    },
+    {
+        "name": "라크",
+        "car_type": "SUV",
+        "last_parked_date": "2025-11-28",
+        "car_detail": "르노",
+        "car_plate": ""
+    },
+    {
+        "name": "히로",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "번즈",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "아키",
+        "car_type": "SEDAN",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "뉴진",
+        "car_type": "SEDAN",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": "2025-12-02",
+        "car_number": "",
+        "car_details": ""
+    },
+    {
+        "name": "피르",
+        "car_type": "SEDAN",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "피치",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "루니",
+        "car_type": "SEDAN",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "상떼",
+        "car_type": "SEDAN",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "키커",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "뿌까",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "솔트",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    },
+    {
+        "name": "후크",
+        "car_type": "SUV",
+        "car_detail": "",
+        "car_plate": "",
+        "last_parked_date": null
+    }
 ]

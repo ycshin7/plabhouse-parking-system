@@ -8,9 +8,15 @@ import os
 import textwrap
 
 # --- Constants ---
+# --- Constants ---
 USERS_FILE = "users.json"
 REQUESTS_FILE = "requests.json"
 HISTORY_FILE = "history.json"
+
+# TODO: Enter your Slack Webhook URL here
+SLACK_WEBHOOK_URL = "" 
+
+import requests # Ensure requests is imported
 
 # --- Custom CSS for Toss-Inspired Design ---
 def local_css():
@@ -272,6 +278,20 @@ def get_target_date():
         
     return target
 
+def send_slack_message(message):
+    if not SLACK_WEBHOOK_URL:
+        return False, "Slack Webhook URL이 설정되지 않았습니다."
+    
+    payload = {"text": message}
+    try:
+        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
+        if response.status_code == 200:
+            return True, "전송 성공"
+        else:
+            return False, f"전송 실패 (Status: {response.status_code})"
+    except Exception as e:
+        return False, f"에러 발생: {str(e)}"
+
 # --- Initialization ---
 if "page" not in st.session_state:
     st.session_state.page = "main"
@@ -311,8 +331,216 @@ if "guest" in requests_data:
 if "guests" not in requests_data:
     requests_data["guests"] = []
 
+# --- AUTOMATION: Auto-Allocate at 08:01 ---
+now_kst = get_kst_time()
+today_str = str(now_kst.date())
+
+# Check if it's time to auto-allocate (e.g., between 08:01 and 08:05)
+# And check if allocation for today doesn't exist yet
+history_today_check = next((h for h in history if h["date"] == today_str), None)
+
+if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
+    # Perform Allocation Logic (Same as Admin Button)
+    st.toast("🤖 08:01 자동 배정을 시작합니다...")
+    
+    admin_slots = 1
+    tower_slots = 2
+    if requests_data["sante_opt_out"]: 
+        tower_slots += 1
+    
+    candidates = []
+    
+    # Staff
+    for app in requests_data["applicants"]:
+        if isinstance(app, str):
+            u_name = app
+            u_time = "00:00"
+            ts = datetime.min
+        else:
+            u_name = app["name"]
+            u_time = datetime.fromisoformat(app["timestamp"]).strftime("%H:%M")
+            ts = datetime.fromisoformat(app["timestamp"])
+        
+        user_obj = next((u for u in users if u["name"] == u_name), None)
+        if user_obj:
+            candidates.append({
+                "type": "staff",
+                "name": u_name,
+                "car_type": user_obj["car_type"],
+                "last_parked": user_obj["last_parked_date"],
+                "timestamp": ts,
+                "display_name": f"{u_name} ({user_obj['car_type']}) {u_time}"
+            })
+    
+    # Guests
+    for g in requests_data["guests"]:
+        if "timestamp" in g:
+            ts = datetime.fromisoformat(g["timestamp"])
+            time_str = ts.strftime("%H:%M")
+        else:
+            ts = datetime.min
+            time_str = "00:00"
+        
+        g_label = f"{g['name']} ({g['car_type']}) {time_str}"
+        
+        candidates.append({
+            "type": "guest",
+            "name": g["name"],
+            "car_type": g["car_type"],
+            "location": g["location"],
+            "timestamp": ts,
+            "display_name": g_label
+        })
+    
+    # Sort
+    staff_c = [c for c in candidates if c["type"] == "staff"]
+    guest_c = [c for c in candidates if c["type"] == "guest"]
+    
+    staff_c.sort(key=lambda x: (x["last_parked"] if x["last_parked"] else "0000-00-00", x["timestamp"]))
+    guest_c.sort(key=lambda x: x["timestamp"])
+    
+    # Allocation
+    result_admin = []
+    result_tower = []
+    result_wait = []
+    
+    # Guests first
+    for g in guest_c:
+        assigned = False
+        if "관리실" in g["location"]:
+            if admin_slots > 0:
+                result_admin.append(g["display_name"])
+                admin_slots -= 1
+                assigned = True
+        elif "타워" in g["location"]:
+            if tower_slots > 0:
+                result_tower.append(g["display_name"])
+                tower_slots -= 1
+                assigned = True
+        elif "상관없음" in g["location"]:
+            if tower_slots > 0:
+                result_tower.append(g["display_name"])
+                tower_slots -= 1
+                assigned = True
+            elif admin_slots > 0:
+                result_admin.append(g["display_name"])
+                admin_slots -= 1
+                assigned = True
+        
+        if not assigned:
+            result_wait.append(g["display_name"])
+    
+    # Staff
+    for s in staff_c:
+        assigned = False
+        if s["car_type"] == "SUV":
+            if admin_slots > 0:
+                result_admin.append(s["display_name"])
+                admin_slots -= 1
+                assigned = True
+        else:
+            if tower_slots > 0:
+                result_tower.append(s["display_name"])
+                tower_slots -= 1
+                assigned = True
+            elif admin_slots > 0:
+                result_admin.append(s["display_name"])
+                admin_slots -= 1
+                assigned = True
+        
+        if not assigned:
+            result_wait.append(s["display_name"])
+    
+    # Update last_parked for assigned staff
+    for s in staff_c:
+        if s["display_name"] in result_admin or s["display_name"] in result_tower:
+            for u in users:
+                if u["name"] == s["name"]:
+                    u["last_parked_date"] = today_str
+                    break
+    
+    save_json(USERS_FILE, users)
+    
+    # Save to history
+    history.append({
+        "date": today_str,
+        "admin": result_admin,
+        "tower": result_tower,
+        "wait": result_wait
+    })
+    save_json(HISTORY_FILE, history)
+    
+    # Generate Slack Message
+    day_names = ["월", "화", "수", "목", "금", "토", "일"]
+    target_date_obj = datetime.strptime(today_str, "%Y-%m-%d").date()
+    target_weekday = day_names[target_date_obj.weekday()]
+    
+    admin_capacity = 1
+    tower_capacity = 3 if requests_data["sante_opt_out"] else 2
+    
+    admin_occupied = len(result_admin)
+    tower_occupied = len(result_tower)
+    
+    admin_remaining = admin_capacity - admin_occupied
+    tower_remaining = tower_capacity - tower_occupied
+    total_capacity = admin_capacity + tower_capacity
+    total_occupied = admin_occupied + tower_occupied
+    total_remaining = total_capacity - total_occupied
+    
+    def strip_time(name_str):
+        parts = name_str.rsplit(' ', 1)
+        if len(parts) == 2:
+            last_part = parts[1]
+            if ':' in last_part or last_part == '수동입력':
+                return parts[0]
+        return name_str
+
+    slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과**
+
+🅿️ **주차 공간 현황**
+• 전체: {total_occupied}/{total_capacity} (남은 공간: {total_remaining})
+• 관리실: {admin_occupied}/{admin_capacity} (남은 공간: {admin_remaining})
+• 타워: {tower_occupied}/{tower_capacity} (남은 공간: {tower_remaining})
+
+🏢 **관리실 배정**"""
+    
+    if result_admin:
+        for name in result_admin:
+            slack_msg += f"\n• {strip_time(name)}"
+    else:
+        slack_msg += "\n• (배정 없음)"
+    
+    slack_msg += "\n\n🅿️ **타워 배정**"
+    if result_tower:
+        for name in result_tower:
+            slack_msg += f"\n• {strip_time(name)}"
+    else:
+        slack_msg += "\n• (배정 없음)"
+    
+    if result_wait:
+        slack_msg += "\n\n⏳ **대기 인원** (우선순위에서 밀림)"
+        for name in result_wait:
+            slack_msg += f"\n• {strip_time(name)}"
+            
+    # Send to Slack
+    success, msg = send_slack_message(slack_msg)
+    if success:
+        st.toast(f"✅ 자동 배정 및 슬랙 전송 완료!")
+    else:
+        st.toast(f"⚠️ 자동 배정 완료, 슬랙 전송 실패: {msg}")
+        
+    st.rerun()
+
+# Date Check
 # Date Check
 if requests_data["target_date"] != str(target_date):
+    # BACKUP LOGIC: Save previous data before reset
+    old_date = requests_data["target_date"]
+    if requests_data["applicants"] or requests_data["guests"]:
+        backup_file = f"requests_backup_{old_date}.json"
+        save_json(backup_file, requests_data)
+        # Optional: We could also log this action
+        
     requests_data = {
         "target_date": str(target_date),
         "applicants": [],
@@ -735,6 +963,13 @@ else:
             
             st.markdown("#### 📤 슬랙 메시지 (복사용)")
             st.code(slack_msg, language="markdown")
+            
+            if st.button("📢 슬랙으로 결과 전송", type="primary", use_container_width=True):
+                success, msg = send_slack_message(slack_msg)
+                if success:
+                    st.success(f"✅ {msg}")
+                else:
+                    st.error(f"❌ {msg}")
                     
         elif datetime.now().hour < 8 and not test_mode:
             st.info(f"오늘({today_str}) 배정 결과는 08:00에 공개됩니다.")
