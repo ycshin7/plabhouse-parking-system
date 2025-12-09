@@ -555,12 +555,88 @@ local_css()
 # MAIN PAGE
 # ============================================
 if st.session_state.page == "main":
+    # CSS to remove top whitespace
+    st.markdown("""
+    <style>
+    /* Remove top padding/margin */
+    .main .block-container {
+        padding-top: 2rem !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Header
     day_names = ["월", "화", "수", "목", "금", "토", "일"]
     day_of_week = day_names[target_date.weekday()]
     
     st.title("플랩하우스 주차")
     st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
+    
+    # ============================================
+    # TODAY'S ALLOCATION RESULTS (if available)
+    # ============================================
+    today_str = str(now_kst.date())
+    history_today = next((h for h in history if h["date"] == today_str), None)
+    
+    if history_today:
+        st.markdown("### 📅 오늘의 주차 배정 결과")
+        
+        # Helper function to strip time info
+        def strip_time_display(name_str):
+            parts = name_str.rsplit(' ', 1)
+            if len(parts) == 2:
+                last_part = parts[1]
+                if ':' in last_part or last_part == '수동입력':
+                    return parts[0]
+            return name_str
+        
+        # Calculate capacities
+        admin_capacity = 1
+        tower_capacity = 3 if requests_data["sante_opt_out"] else 2
+        admin_occupied = len(history_today["admin"])
+        tower_occupied = len(history_today["tower"])
+        admin_remaining = admin_capacity - admin_occupied
+        tower_remaining = tower_capacity - tower_occupied
+        
+        # Display results in columns
+        result_col1, result_col2, result_col3 = st.columns(3)
+        
+        with result_col1:
+            st.markdown(f"**🏢 관리실** ({admin_occupied}/{admin_capacity})")
+            if history_today["admin"]:
+                for name in history_today["admin"]:
+                    st.write(f"• {strip_time_display(name)}")
+            else:
+                st.caption("배정 없음")
+        
+        with result_col2:
+            st.markdown(f"**🅿️ 타워** ({tower_occupied}/{tower_capacity})")
+            if history_today["tower"]:
+                for name in history_today["tower"]:
+                    st.write(f"• {strip_time_display(name)}")
+            else:
+                st.caption("배정 없음")
+        
+        with result_col3:
+            st.markdown(f"**⏳ 대기** ({len(history_today['wait'])})")
+            if history_today["wait"]:
+                for name in history_today["wait"]:
+                    st.write(f"• {strip_time_display(name)}")
+            else:
+                st.caption("대기 없음")
+        
+        # Quick Access Button - Fill Remaining Slots
+        if admin_remaining > 0 or tower_remaining > 0:
+            col_spacer, col_button = st.columns([3, 1])
+            with col_button:
+                if st.button("🚗 남은 자리 주차하기", type="primary", use_container_width=True):
+                    # Navigate to admin page and set editing mode for today's history
+                    st.session_state.page = "admin"
+                    st.session_state.admin_tab = "히스토리"  # Set tab to History
+                    st.session_state[f"editing_hist_{today_str}"] = True  # Activate edit mode
+                    st.rerun()
+        
+        st.markdown("---")
     
     # ============================================
     # 3 ACTION CARDS - BUTTONS AS CARDS
@@ -905,8 +981,19 @@ else:
     
     st.divider()
     
+    # Determine which tab to select based on session state
+    tab_names = ["📊 배정 결과", "👥 직원 관리", "📜 히스토리", "🗑️ 데이터 관리"]
+    default_tab = 0  # Default to first tab
+    
+    # Check if admin_tab is set in session state
+    if "admin_tab" in st.session_state:
+        if st.session_state.admin_tab == "히스토리":
+            default_tab = 2
+        # Clear the session state after using it
+        del st.session_state.admin_tab
+    
     # Tabs for Admin Functions
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 배정 결과", "👥 직원 관리", "📜 히스토리", "🗑️ 데이터 관리"])
+    tab1, tab2, tab3, tab4 = st.tabs(tab_names)
     
     # ============================================
     # TAB 1: Allocation Results
