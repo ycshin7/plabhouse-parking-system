@@ -647,33 +647,58 @@ if st.session_state.page == "main":
         justify-content: center;
     }
     
-    /* Mobile Responsive - Force horizontal layout */
+    /* Mobile Responsive - Optimize vertical layout */
     @media (max-width: 768px) {
+        /* Reduce spacing between elements */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Reduce title sizes */
+        h1 {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.3rem !important;
+        }
+        
+        .subtitle {
+            font-size: 0.85rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        /* Make cards more compact */
         div[data-testid="column"] {
-            flex: 1 1 30% !important;
-            min-width: 30% !important;
-            max-width: 33% !important;
+            padding: 0 0.25rem !important;
+            margin-bottom: 0.5rem !important;
         }
         
         .stButton > button[kind="secondary"] {
-            height: 140px !important;
-            font-size: 11px !important;
-            padding: 0 5px !important;
+            height: 100px !important;
+            font-size: 10px !important;
+            padding: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
         }
         
         .stButton > button[kind="secondary"] p::first-line {
-            font-size: 16px !important;
-            line-height: 1.8 !important;
+            font-size: 15px !important;
+            line-height: 1.5 !important;
         }
         
         .stButton > button[kind="secondary"] p {
-            font-size: 10px !important;
+            font-size: 11px !important;
             line-height: 1.3 !important;
         }
         
-        .block-container {
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+        /* Reduce metric spacing */
+        div[data-testid="stMetric"] {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        /* Reduce divider margins */
+        hr {
+            margin: 0.5rem 0 !important;
         }
     }
     </style>
@@ -1484,34 +1509,61 @@ else:
                                 # Create staff options list
                                 staff_options = [f"{u['name']} ({u['car_type']})" for u in users]
                                 
+                                # Helper function to extract base name from history format
+                                def extract_base_name(name_str):
+                                    # Format: "Name (CarType) Time" or "Name (CarType) 수동입력"
+                                    # Extract "Name (CarType)" part
+                                    parts = name_str.rsplit(' ', 1)  # Split from right
+                                    if len(parts) == 2:
+                                        last_part = parts[1]
+                                        if ':' in last_part or last_part == '수동입력':
+                                            return parts[0]  # Return "Name (CarType)"
+                                    return name_str  # Return as-is if no time found
+                                
+                                # Extract base names and filter valid options
+                                admin_defaults = [extract_base_name(item) for item in h["admin"]]
+                                admin_defaults = [item for item in admin_defaults if item in staff_options]
+                                
+                                tower_defaults = [extract_base_name(item) for item in h["tower"]]
+                                tower_defaults = [item for item in tower_defaults if item in staff_options]
+                                
+                                wait_defaults = [extract_base_name(item) for item in h["wait"]]
+                                wait_defaults = [item for item in wait_defaults if item in staff_options]
+                                
                                 col1, col2, col3 = st.columns(3)
                                 
                                 with col1:
                                     st.markdown("**🏢 관리실**")
-                                    edit_admin = st.multiselect("관리실", staff_options, default=h["admin"], key=f"edit_admin_{h['date']}")
+                                    edit_admin = st.multiselect("관리실", staff_options, default=admin_defaults, key=f"edit_admin_{h['date']}", label_visibility="collapsed")
                                 
                                 with col2:
                                     st.markdown("**🅿️ 타워**")
-                                    edit_tower = st.multiselect("타워", staff_options, default=h["tower"], key=f"edit_tower_{h['date']}")
+                                    edit_tower = st.multiselect("타워", staff_options, default=tower_defaults, key=f"edit_tower_{h['date']}", label_visibility="collapsed")
                                 
                                 with col3:
                                     st.markdown("**⏳ 대기**")
-                                    edit_wait = st.multiselect("대기", staff_options, default=h["wait"], key=f"edit_wait_{h['date']}")
+                                    edit_wait = st.multiselect("대기", staff_options, default=wait_defaults, key=f"edit_wait_{h['date']}", label_visibility="collapsed")
                                 
                                 col_save, col_cancel = st.columns(2)
                                 with col_save:
-                                    if st.form_submit_button("💾 저장", type="primary"):
-                                        h["admin"] = edit_admin
-                                        h["tower"] = edit_tower
-                                        h["wait"] = edit_wait
-                                        save_json(HISTORY_FILE, history)
-                                        st.session_state[f"editing_hist_{h['date']}"] = False
-                                        st.success("✅ 저장되었습니다!")
-                                        st.rerun()
+                                    submit_save = st.form_submit_button("💾 저장", type="primary", use_container_width=True)
                                 with col_cancel:
-                                    if st.form_submit_button("❌ 취소"):
-                                        st.session_state[f"editing_hist_{h['date']}"] = False
-                                        st.rerun()
+                                    submit_cancel = st.form_submit_button("❌ 취소", use_container_width=True)
+                                
+                                # Handle form submission outside the columns
+                                if submit_save:
+                                    # Save with "Name (CarType) 수동입력" format for edited entries
+                                    h["admin"] = [f"{item} 수동입력" for item in edit_admin]
+                                    h["tower"] = [f"{item} 수동입력" for item in edit_tower]
+                                    h["wait"] = [f"{item} 수동입력" for item in edit_wait]
+                                    save_json(HISTORY_FILE, history)
+                                    st.session_state[f"editing_hist_{h['date']}"] = False
+                                    st.success("✅ 저장되었습니다!")
+                                    st.rerun()
+                                
+                                if submit_cancel:
+                                    st.session_state[f"editing_hist_{h['date']}"] = False
+                                    st.rerun()
                         else:
                             # Display current allocation
                             col1, col2, col3 = st.columns(3)
