@@ -278,19 +278,34 @@ def get_target_date():
         
     return target
 
+
 def send_slack_message(message):
-    if not SLACK_WEBHOOK_URL:
-        return False, "Slack Webhook URL이 설정되지 않았습니다."
-    
-    payload = {"text": message}
+    """
+    Send a message to Slack using webhook URL from secrets.
+    Returns: (success: bool, message: str)
+    """
     try:
-        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
-        if response.status_code == 200:
-            return True, "전송 성공"
+        # Try to get webhook URL from Streamlit secrets
+        if hasattr(st, 'secrets') and 'SLACK_WEBHOOK_URL' in st.secrets:
+            webhook_url = st.secrets['SLACK_WEBHOOK_URL']
         else:
-            return False, f"전송 실패 (Status: {response.status_code})"
+            return False, "Slack Webhook URL이 설정되지 않았습니다. Streamlit Cloud의 Secrets에 SLACK_WEBHOOK_URL을 추가해주세요."
+        
+        # Send POST request to Slack
+        import requests
+        payload = {"text": message}
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            return True, "슬랙 메시지 전송 성공!"
+        else:
+            return False, f"슬랙 전송 실패 (상태 코드: {response.status_code})"
+    
+    except ImportError:
+        return False, "requests 라이브러리가 설치되지 않았습니다. requirements.txt에 'requests'를 추가해주세요."
     except Exception as e:
-        return False, f"에러 발생: {str(e)}"
+        return False, f"슬랙 전송 중 오류 발생: {str(e)}"
+
 
 # --- Initialization ---
 if "page" not in st.session_state:
