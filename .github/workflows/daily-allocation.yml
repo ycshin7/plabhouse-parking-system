@@ -1,0 +1,31 @@
+name: Daily Parking Allocation
+
+on:
+  schedule:
+    # Runs at 23:01 UTC (08:01 KST next day)
+    # KST = UTC + 9, so 08:01 KST = 23:01 UTC previous day
+    - cron: '1 23 * * 0-4'  # Sunday-Thursday (for Mon-Fri in KST)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  allocate-and-notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests pytz
+    
+    - name: Run allocation and send Slack notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        python auto_allocate.py
