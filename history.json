@@ -133,11 +133,59 @@
     {
         "date": "2025-12-04",
         "admin": [
+            "라크 (SUV) 수동입력"
+        ],
+        "tower": [
+            "루니 (SEDAN) 수동입력",
+            "뉴진 (SEDAN) 수동입력"
+        ],
+        "wait": []
+    },
+    {
+        "date": "2025-12-05",
+        "admin": [
             "라크 (SUV)"
         ],
         "tower": [
-            "루니 (SEDAN)"
+            "뉴진 (SEDAN)",
+            "피르 (SEDAN)"
         ],
         "wait": []
+    },
+    {
+        "date": "2025-12-08",
+        "admin": [
+            "피치 (SUV)"
+        ],
+        "tower": [
+            "루니 (SEDAN)",
+            "뉴진 (SEDAN)",
+            "시안 (SEDAN)"
+        ],
+        "wait": []
+    },
+    {
+        "date": "2025-12-09",
+        "admin": [
+            "뚜비 (SUV)"
+        ],
+        "tower": [
+            "시안 (SEDAN)",
+            "뉴진 (SEDAN)"
+        ],
+        "wait": []
+    },
+    {
+        "date": "2025-12-10",
+        "admin": [
+            "피치 (SUV)"
+        ],
+        "tower": [
+            "피르 (SEDAN)",
+            "루니 (SEDAN)"
+        ],
+        "wait": [
+            "뉴진 (SEDAN)"
+        ]
     }
 ]
