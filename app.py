@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import pytz # Required for timezone handling
 import os
 import textwrap
+import github_sync # GitHub Persistence Module
 
 # --- Constants ---
 # --- Constants ---
@@ -244,6 +245,25 @@ def local_css():
 
 # --- Helper Functions ---
 def load_json(file_path, default_data):
+    # Try to check if GitHub is configured
+    if not github_sync.get_github_repo():
+        # Not configured or check failed
+        pass
+    else:
+        # Configured, try to load
+        gh_data = github_sync.load_from_github(file_path, default_data)
+        if gh_data is not None:
+            return gh_data
+        else:
+            # Configured BUT returned None -> LOAD FAILURE (Network or Auth or Missing File)
+            # If it's a missing file, it might be fine, but if it's network, it's bad.
+            # github_sync.load_from_github returns None on error.
+            # Ideally we want to panic here if it's a critical file like history.json
+            if file_path in ["history.json", "users.json"]:
+                 st.session_state["github_load_failed"] = True
+                 st.session_state[f"load_error_{file_path}"] = "GitHub에서 데이터를 불러오지 못했습니다."
+
+    # Fallback to local
     if not os.path.exists(file_path):
         return default_data
     try:
@@ -253,8 +273,22 @@ def load_json(file_path, default_data):
         return default_data
 
 def save_json(file_path, data):
+    # Critical Safety Check
+    if st.session_state.get("github_load_failed", False):
+        st.warning(f"🚫 데이터 로드 실패로 인해 '{file_path}' 저장이 차단되었습니다. (데이터 덮어쓰기 방지)")
+        return
+
+    # Save to local
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+    
+    # Save to GitHub
+    success = github_sync.save_to_github(file_path, data, f"Update {file_path} from Streamlit App")
+    
+    if success:
+        st.toast(f"✅ {file_path} 저장 완료 (GitHub)", icon="☁️")
+    else:
+        st.error(f"⚠️ {file_path} GitHub 저장 실패! Secrets의 GITHUB_TOKEN과 GITHUB_REPO를 확인해주세요.")
 
 def get_kst_time():
     return datetime.now(pytz.timezone('Asia/Seoul'))
@@ -310,6 +344,12 @@ def send_slack_message(message):
 # --- Initialization ---
 if "page" not in st.session_state:
     st.session_state.page = "main"
+if "github_load_failed" not in st.session_state:
+    st.session_state.github_load_failed = False
+
+# Display Global Warning if Load Failed
+if st.session_state.github_load_failed:
+    st.error("🚨 [긴급] GitHub 데이터 불러오기 실패! 현재 '오프라인 모드'입니다. 지금 저장하면 기존 데이터가 삭제될 수 있으니, 인터넷 연결을 확인하거나 잠시 후 다시 접속해주세요.", icon="🚫")
 if "show_staff_form" not in st.session_state:
     st.session_state.show_staff_form = False
 if "show_guest_form" not in st.session_state:
