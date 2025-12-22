@@ -1736,6 +1736,32 @@ else:
     with tab4:
         st.markdown("### 데이터 관리")
         
+        st.markdown("### ☁️ 데이터 저장 확인 (GitHub)")
+        
+        if st.button("🔄 GitHub 저장 상태 확인하기"):
+            with st.spinner("GitHub와 통신 중입니다..."):
+                try:
+                    gh_history = github_sync.load_from_github(HISTORY_FILE, [])
+                    if gh_history is None:
+                        st.error("❌ GitHub 연결 실패! 데이터가 저장되지 않았을 수 있습니다.")
+                    else:
+                        local_count = len(history)
+                        gh_count = len(gh_history)
+                        
+                        if local_count == gh_count:
+                            if local_count > 0 and history[-1] == gh_history[-1]:
+                                st.success(f"✅ **저장 성공!** (로컬 {local_count}건 = GitHub {gh_count}건)")
+                                st.info(f"최근 데이터: {history[-1]['date']}")
+                            else:
+                                st.success(f"✅ 개수는 맞지만 내용이 다를 수 있습니다. (로컬 {local_count}건 = GitHub {gh_count}건)")
+                        else:
+                            st.warning(f"⚠️ **데이터 불일치!** (로컬 {local_count}건 vs GitHub {gh_count}건)")
+                            st.write("방금 저장했다면 10초 뒤에 다시 눌러보세요.")
+                except Exception as e:
+                    st.error(f"확인 중 오류 발생: {e}")
+        
+        st.divider()
+
         st.warning("⚠️ 위험 구역")
         
         if st.button("🗑️ 오늘 신청 내역 초기화", type="secondary"):
