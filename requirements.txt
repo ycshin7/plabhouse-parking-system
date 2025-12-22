@@ -3,3 +3,5 @@ pandas
 openpyxl
 pytz
 requests
+PyGithub
+
