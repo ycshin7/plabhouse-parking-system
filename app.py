@@ -82,15 +82,32 @@ def local_css():
             color: white !important;
             border: none !important;
             font-weight: 600;
+            font-size: 0.95rem !important;
             padding: 14px 0;
             transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         div.stButton > button:hover {
             background-color: var(--primary-blue-hover) !important;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(49, 130, 246, 0.3);
+        }
+        
+        /* Metrics - Smaller and Centered */
+        div[data-testid="stMetric"] {
+            text-align: center;
+        }
+        div[data-testid="stMetricLabel"] {
+            font-size: 0.75rem !important;
+            justify-content: center;
+        }
+        div[data-testid="stMetricValue"] {
+            font-size: 1.2rem !important;
+            justify-content: center;
         }
 
         /* Inputs & Forms */
@@ -137,7 +154,7 @@ def load_json(file_path, default_data):
             # Ideally we want to panic here if it's a critical file like history.json
             if file_path in ["history.json", "users.json"]:
                  st.session_state["github_load_failed"] = True
-                 st.session_state[f"load_error_{file_path}"] = "GitHub에서 데이터를 불러오지 못했습니다."
+                 st.session_state[f"load_error_{file_path}"] = "GitHub   ."
 
     # Fallback to local
     if not os.path.exists(file_path):
@@ -151,7 +168,7 @@ def load_json(file_path, default_data):
 def save_json(file_path, data):
     # Critical Safety Check
     if st.session_state.get("github_load_failed", False):
-        st.warning(f"🚫 데이터 로드 실패로 인해 '{file_path}' 저장이 차단되었습니다. (데이터 덮어쓰기 방지)")
+        st.warning(f"    '{file_path}'  . (  )")
         return
 
     # Save to local
@@ -162,9 +179,9 @@ def save_json(file_path, data):
     success = github_sync.save_to_github(file_path, data, f"Update {file_path} from Streamlit App")
     
     if success:
-        st.toast(f"✅ {file_path} 저장 완료 (GitHub)", icon="☁️")
+        st.toast(f"{file_path}   (GitHub)")
     else:
-        st.error(f"⚠️ {file_path} GitHub 저장 실패! Secrets의 GITHUB_TOKEN과 GITHUB_REPO를 확인해주세요.")
+        st.error(f"{file_path} GitHub  ! Secrets GITHUB_TOKEN GITHUB_REPO .")
 
 def get_kst_time():
     return datetime.now(pytz.timezone('Asia/Seoul'))
@@ -199,7 +216,7 @@ def send_slack_message(message):
         if hasattr(st, 'secrets') and 'SLACK_WEBHOOK_URL' in st.secrets:
             webhook_url = st.secrets['SLACK_WEBHOOK_URL']
         else:
-            return False, "Slack Webhook URL이 설정되지 않았습니다. Streamlit Cloud의 Secrets에 SLACK_WEBHOOK_URL을 추가해주세요."
+            return False, "Slack Webhook URL  . Streamlit Cloud Secrets SLACK_WEBHOOK_URL ."
         
         # Send POST request to Slack
         import requests
@@ -207,14 +224,14 @@ def send_slack_message(message):
         response = requests.post(webhook_url, json=payload, timeout=10)
         
         if response.status_code == 200:
-            return True, "슬랙 메시지 전송 성공!"
+            return True, "   !"
         else:
-            return False, f"슬랙 전송 실패 (상태 코드: {response.status_code})"
+            return False, f"   ( : {response.status_code})"
     
     except ImportError:
-        return False, "requests 라이브러리가 설치되지 않았습니다. requirements.txt에 'requests'를 추가해주세요."
+        return False, "requests   . requirements.txt 'requests' ."
     except Exception as e:
-        return False, f"슬랙 전송 중 오류 발생: {str(e)}"
+        return False, f"    : {str(e)}"
 
 
 # --- Initialization ---
@@ -225,7 +242,7 @@ if "github_load_failed" not in st.session_state:
 
 # Display Global Warning if Load Failed
 if st.session_state.github_load_failed:
-    st.error("🚨 [긴급] GitHub 데이터 불러오기 실패! 현재 '오프라인 모드'입니다. 지금 저장하면 기존 데이터가 삭제될 수 있으니, 인터넷 연결을 확인하거나 잠시 후 다시 접속해주세요.", icon="🚫")
+    st.error("[] GitHub   !  ' '.       ,       .")
 if "show_staff_form" not in st.session_state:
     st.session_state.show_staff_form = False
 if "show_guest_form" not in st.session_state:
@@ -249,11 +266,11 @@ if "guest" in requests_data:
     if isinstance(requests_data["guest"], dict) and requests_data["guest"].get("needed"):
         old = requests_data["guest"]
         requests_data["guests"] = [{
-            "name": "기존 손님",
+            "name": " ",
             "car_type": old.get("car_type", "SEDAN"),
-            "location": old.get("location", "상관없음(ANY)"),
-            "reason": "데이터 마이그레이션",
-            "researcher": "시스템"
+            "location": old.get("location", "(ANY)"),
+            "reason": " ",
+            "researcher": ""
         }]
     del requests_data["guest"]
     save_json(REQUESTS_FILE, requests_data)
@@ -272,7 +289,7 @@ history_today_check = next((h for h in history if h["date"] == today_str), None)
 
 if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
     # Perform Allocation Logic (Same as Admin Button)
-    st.toast("🤖 08:01 자동 배정을 시작합니다...")
+    st.toast("08:01   ...")
     
     admin_slots = 1
     tower_slots = 2
@@ -338,17 +355,17 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
     # Guests first
     for g in guest_c:
         assigned = False
-        if "관리실" in g["location"]:
+        if "" in g["location"]:
             if admin_slots > 0:
                 result_admin.append(g["display_name"])
                 admin_slots -= 1
                 assigned = True
-        elif "타워" in g["location"]:
+        elif "" in g["location"]:
             if tower_slots > 0:
                 result_tower.append(g["display_name"])
                 tower_slots -= 1
                 assigned = True
-        elif "상관없음" in g["location"]:
+        elif "" in g["location"]:
             if tower_slots > 0:
                 result_tower.append(g["display_name"])
                 tower_slots -= 1
@@ -402,7 +419,7 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
     save_json(HISTORY_FILE, history)
     
     # Generate Slack Message
-    day_names = ["월", "화", "수", "목", "금", "토", "일"]
+    day_names = ["", "", "", "", "", "", ""]
     target_date_obj = datetime.strptime(today_str, "%Y-%m-%d").date()
     target_weekday = day_names[target_date_obj.weekday()]
     
@@ -422,43 +439,43 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
         parts = name_str.rsplit(' ', 1)
         if len(parts) == 2:
             last_part = parts[1]
-            if ':' in last_part or last_part == '수동입력':
+            if ':' in last_part or last_part == '':
                 return parts[0]
         return name_str
 
-    slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과**
+    slack_msg = f""" **{today_str} ({target_weekday})   **
 
-🅿️ **주차 공간 현황**
-• 전체: {total_occupied}/{total_capacity} (남은 공간: {total_remaining})
-• 관리실: {admin_occupied}/{admin_capacity} (남은 공간: {admin_remaining})
-• 타워: {tower_occupied}/{tower_capacity} (남은 공간: {tower_remaining})
+ **  **
+• : {total_occupied}/{total_capacity} ( : {total_remaining})
+• : {admin_occupied}/{admin_capacity} ( : {admin_remaining})
+• : {tower_occupied}/{tower_capacity} ( : {tower_remaining})
 
-🏢 **관리실 배정**"""
+ ** **"""
     
     if result_admin:
         for name in result_admin:
             slack_msg += f"\n• {strip_time(name)}"
     else:
-        slack_msg += "\n• (배정 없음)"
+        slack_msg += "\n• ( )"
     
-    slack_msg += "\n\n🅿️ **타워 배정**"
+    slack_msg += "\n\n ** **"
     if result_tower:
         for name in result_tower:
             slack_msg += f"\n• {strip_time(name)}"
     else:
-        slack_msg += "\n• (배정 없음)"
+        slack_msg += "\n• ( )"
     
     if result_wait:
-        slack_msg += "\n\n⏳ **대기 인원** (우선순위에서 밀림)"
+        slack_msg += "\n\n⏳ ** ** ( )"
         for name in result_wait:
             slack_msg += f"\n• {strip_time(name)}"
             
     # Send to Slack
     success, msg = send_slack_message(slack_msg)
     if success:
-        st.toast(f"✅ 자동 배정 및 슬랙 전송 완료!")
+        st.toast(f"      !")
     else:
-        st.toast(f"⚠️ 자동 배정 완료, 슬랙 전송 실패: {msg}")
+        st.toast(f"   ,   : {msg}")
         
     st.rerun()
 
@@ -497,11 +514,11 @@ if st.session_state.page == "main":
     """, unsafe_allow_html=True)
     
     # Header
-    day_names = ["월", "화", "수", "목", "금", "토", "일"]
+    day_names = ["", "", "", "", "", "", ""]
     day_of_week = day_names[target_date.weekday()]
     
-    st.title("플랩하우스 주차")
-    st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
+    st.title(" ")
+    st.markdown(f'<p class="subtitle">{target_date} ({day_of_week})   .</p>', unsafe_allow_html=True)
     
 
     
@@ -520,7 +537,7 @@ if st.session_state.page == "main":
     
     # 1. Staff Button (Tab)
     with col_t1:
-        if st.button("내일 주차 신청", key="tab_staff", use_container_width=True):
+        if st.button("  ", key="tab_staff", use_container_width=True):
             if st.session_state.active_tab == "staff":
                 st.session_state.active_tab = None  # Close if already open
             else:
@@ -528,7 +545,7 @@ if st.session_state.page == "main":
 
     # 2. Guest Button (Tab)
     with col_t2:
-        if st.button("외부인 주차", key="tab_guest", use_container_width=True):
+        if st.button(" ", key="tab_guest", use_container_width=True):
             if st.session_state.active_tab == "guest":
                 st.session_state.active_tab = None  # Close if already open
             else:
@@ -541,11 +558,11 @@ if st.session_state.page == "main":
         
         if is_sante_parking:
             # Parking ON (Blue)
-            btn_text = "상떼 주차 함"
+            btn_text = "  "
             btn_type = "primary"
         else:
             # Parking OFF (White/Grey)
-            btn_text = "상떼 주차 안 함"
+            btn_text = "   "
             btn_type = "secondary"
             
         if st.button(btn_text, key="btn_sante_toggle", type=btn_type, use_container_width=True):
@@ -563,21 +580,21 @@ if st.session_state.page == "main":
     # 1. STAFF FORM
     if st.session_state.active_tab == "staff":
         with st.container():
-            st.markdown("##### 📝 직원 주차 신청")
+            st.markdown("#####   ")
             
             with st.form("staff_parking_form"):
                 staff_names = [u["name"] for u in users]
                 if not staff_names:
-                    st.warning("등록된 직원이 없습니다. 관리자 페이지에서 직원을 먼저 등록해주세요.")
-                    name_select = st.text_input("이름 (직원 등록 필요)")
+                    st.warning("  .     .")
+                    name_select = st.text_input(" (  )")
                 else:
-                    name_select = st.selectbox("이름을 선택하세요", ["선택해주세요"] + staff_names)
+                    name_select = st.selectbox(" ", [""] + staff_names)
                 
-                submit = st.form_submit_button("신청하기", type="primary", use_container_width=True)
+                submit = st.form_submit_button("", type="primary", use_container_width=True)
                 
                 if submit:
-                    if name_select == "선택해주세요":
-                        st.error("이름을 선택해주세요.")
+                    if name_select == "":
+                        st.error(" .")
                     else:
                         # Check duplicate
                         is_duplicate = False
@@ -588,7 +605,7 @@ if st.session_state.page == "main":
                                 break
                         
                         if is_duplicate:
-                            st.warning(f"이미 {name_select}님의 신청이 접수되어 있습니다.")
+                            st.warning(f" {name_select}   .")
                         else:
                             # Add to requests
                             new_req = {
@@ -597,39 +614,39 @@ if st.session_state.page == "main":
                             }
                             requests_data["applicants"].append(new_req)
                             save_json(REQUESTS_FILE, requests_data)
-                            st.success(f"✅ {name_select}님 주차 신청 완료!")
+                            st.success(f"{name_select}   !")
                             st.session_state.active_tab = None  # Close form after submit
 
     # 2. GUEST FORM
     elif st.session_state.active_tab == "guest":
         with st.container():
-            st.markdown("##### 🚙 외부인 주차 신청")
+            st.markdown("#####   ")
             
             with st.form("guest_parking_form"):
                 g_researcher_options = [u["name"] for u in users]
-                g_researcher = st.selectbox("담당 연구원", g_researcher_options if g_researcher_options else ["직원 등록 필요"], key="g_res")
-                g_name = st.text_input("방문자 성함/업체명", placeholder="예: 김방문 (ABC상사)")
+                g_researcher = st.selectbox(" ", g_researcher_options if g_researcher_options else ["  "], key="g_res")
+                g_name = st.text_input(" /", placeholder=":  (ABC)")
                 col_c1, col_c2 = st.columns(2)
-                g_car = col_c1.selectbox("차종", ["SEDAN", "SUV/VAN"], key="g_car")
-                g_loc = col_c2.selectbox("희망 주차 위치", ["타워 (기계식)", "관리실 앞 (지상)"], key="g_loc")
+                g_car = col_c1.selectbox("", ["SEDAN", "SUV/VAN"], key="g_car")
+                g_loc = col_c2.selectbox("  ", [" ()", "  ()"], key="g_loc")
                 
-                submit_guest = st.form_submit_button("방문 주차 신청", type="primary", use_container_width=True)
+                submit_guest = st.form_submit_button("  ", type="primary", use_container_width=True)
                 
                 if submit_guest:
                     if not g_name:
-                        st.error("방문자 이름을 입력해주세요.")
+                        st.error("  .")
                     else:
                         new_guest = {
                             "name": g_name,
                             "car_type": "SEDAN" if g_car=="SEDAN" else "SUV",
                             "location": g_loc,
-                            "reason": "방문",
+                            "reason": "",
                             "researcher": g_researcher,
                             "timestamp": datetime.now().isoformat()
                         }
                         requests_data["guests"].append(new_guest)
                         save_json(REQUESTS_FILE, requests_data)
-                        st.success(f"✅ {g_name} 방문 주차 신청 완료!")
+                        st.success(f"{g_name}    !")
                         st.session_state.active_tab = None  # Close form after submit
 
     # Removed Sante Form block as it is now a direct toggle button active above
@@ -638,21 +655,21 @@ if st.session_state.page == "main":
     
     staff_count = len(requests_data["applicants"])
     guest_count = len(requests_data["guests"])
-    sante_status = "안 함" if requests_data["sante_opt_out"] else "함"
+    sante_status = " " if requests_data["sante_opt_out"] else ""
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("리서처 신청 현황", f"{staff_count}명")
+        st.metric("  ", f"{staff_count}")
     with col2:
-        st.metric("손님 신청 현황", f"{guest_count}명")
+        st.metric("  ", f"{guest_count}")
     with col3:
-        st.metric("상떼 주차 여부", sante_status)
+        st.metric("  ", sante_status)
         
     # Admin Button - Relocated to bottom right
     st.markdown("---")
     col_spacer, col_admin = st.columns([5, 2]) # Adjusted ratio for wider button
     with col_admin:
-        if st.button("⚙️ 관리화면", type="primary", use_container_width=True):
+        if st.button("", type="primary", use_container_width=True):
             st.session_state.page = "admin"
             st.rerun()
 
@@ -664,26 +681,26 @@ else:
     # Back Button (Top Right)
     col_spacer, col_back = st.columns([6, 1.5]) # Adjusted for button width
     with col_back:
-        if st.button("🏠 메인으로", type="secondary", use_container_width=True):
+        if st.button("", type="secondary", use_container_width=True):
             st.session_state.page = "main"
             st.rerun()
 
-    st.title("⚙️ 관리자 페이지")
+    st.title(" ")
     
     # Test Mode Toggle
-    test_mode = st.toggle("🧪 테스트 모드 (시간 제한 무시)", value=False)
+    test_mode = st.toggle("  (  )", value=False)
     if test_mode:
-        st.info("테스트 모드가 켜졌습니다. 모든 기능을 언제든 사용할 수 있습니다.")
+        st.info("  .      .")
     
     st.divider()
     
     # Determine which tab to select based on session state
-    tab_names = ["📊 배정 결과", "👥 직원 관리", "📜 히스토리", "🗑️ 데이터 관리"]
+    tab_names = [" ", " ", "", " "]
     default_tab = 0  # Default to first tab
     
     # Check if admin_tab is set in session state
     if "admin_tab" in st.session_state:
-        if st.session_state.admin_tab == "히스토리":
+        if st.session_state.admin_tab == "":
             default_tab = 2
         # Clear the session state after using it
         del st.session_state.admin_tab
@@ -695,13 +712,13 @@ else:
     # TAB 1: Allocation Results
     # ============================================
     with tab1:
-        st.markdown("### 배정 결과")
+        st.markdown("###  ")
         
         today_str = str(get_kst_time().date())
         history_today = next((h for h in history if h["date"] == today_str), None)
         
         if history_today:
-            st.success(f"✅ {today_str} 배정 결과가 확정되었습니다.")
+            st.success(f" {today_str}   .")
             
             # Calculate capacities
             admin_capacity = 1
@@ -722,12 +739,12 @@ else:
                         time_part = parts[-1]
                         return f"{base_name} ({car_type}) {time_part}"
                     else:
-                        return f"{base_name} ({car_type}) 수동입력"
+                        return f"{base_name} ({car_type}) "
                 
                 if len(parts) > 1 and ":" in parts[-1]:
                     return name_str
                 else:
-                    return f"{name_str} 수동입력"
+                    return f"{name_str} "
             
             admin_list = [enrich_name(item) for item in history_today["admin"]]
             tower_list = [enrich_name(item) for item in history_today["tower"]]
@@ -738,23 +755,23 @@ else:
             
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.markdown(f"#### 🏢 관리실 ({admin_occupied}/{admin_capacity})")
+                st.markdown(f"####   ({admin_occupied}/{admin_capacity})")
                 for item in admin_list:
-                    st.success(f"**{item}**", icon="✅")
+                    st.success(f"**{item}**", icon="")
             with c2:
-                st.markdown(f"#### 🅿️ 타워 ({tower_occupied}/{tower_capacity})")
+                st.markdown(f"####   ({tower_occupied}/{tower_capacity})")
                 for item in tower_list:
-                    st.info(f"**{item}**", icon="🅿️")
+                    st.info(f"**{item}**", icon="")
             with c3:
                 wait_count = len(wait_list)
-                st.markdown(f"#### ⏳ 대기 ({wait_count})")
+                st.markdown(f"#### ⏳  ({wait_count})")
                 for item in wait_list:
                     st.warning(f"**{item}**", icon="⏳")
             
             st.divider()
             
             # Slack Message
-            day_names = ["월", "화", "수", "목", "금", "토", "일"]
+            day_names = ["", "", "", "", "", "", ""]
             target_date_obj = datetime.strptime(today_str, "%Y-%m-%d").date()
             target_weekday = day_names[target_date_obj.weekday()]
             
@@ -768,51 +785,51 @@ else:
                 parts = name_str.rsplit(' ', 1)
                 if len(parts) == 2:
                     last_part = parts[1]
-                    if ':' in last_part or last_part == '수동입력':
+                    if ':' in last_part or last_part == '':
                         return parts[0]
                 return name_str
             
-            slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과**
+            slack_msg = f""" **{today_str} ({target_weekday})   **
 
-🅿️ **주차 공간 현황**
-• 전체: {total_occupied}/{total_capacity} (남은 공간: {total_remaining})
-• 관리실: {admin_occupied}/{admin_capacity} (남은 공간: {admin_remaining})
-• 타워: {tower_occupied}/{tower_capacity} (남은 공간: {tower_remaining})
+ **  **
+• : {total_occupied}/{total_capacity} ( : {total_remaining})
+• : {admin_occupied}/{admin_capacity} ( : {admin_remaining})
+• : {tower_occupied}/{tower_capacity} ( : {tower_remaining})
 
-🏢 **관리실 배정**"""
+ ** **"""
             
             if admin_list:
                 for name in admin_list:
                     slack_msg += f"\n• {strip_time(name)}"
             else:
-                slack_msg += "\n• (배정 없음)"
+                slack_msg += "\n• ( )"
             
-            slack_msg += "\n\n🅿️ **타워 배정**"
+            slack_msg += "\n\n ** **"
             if tower_list:
                 for name in tower_list:
                     slack_msg += f"\n• {strip_time(name)}"
             else:
-                slack_msg += "\n• (배정 없음)"
+                slack_msg += "\n• ( )"
             
             if wait_list:
-                slack_msg += "\n\n⏳ **대기 인원** (우선순위에서 밀림)"
+                slack_msg += "\n\n⏳ ** ** ( )"
                 for name in wait_list:
                     slack_msg += f"\n• {strip_time(name)}"
             
-            st.markdown("#### 📤 슬랙 메시지 (복사용)")
+            st.markdown("####    ()")
             st.code(slack_msg, language="markdown")
             
-            if st.button("📢 슬랙으로 결과 전송", type="primary", use_container_width=True):
+            if st.button("   ", type="primary", use_container_width=True):
                 success, msg = send_slack_message(slack_msg)
                 if success:
-                    st.success(f"✅ {msg}")
+                    st.success(f" {msg}")
                 else:
-                    st.error(f"❌ {msg}")
+                    st.error(f" {msg}")
                     
         elif datetime.now().hour < 8 and not test_mode:
-            st.info(f"오늘({today_str}) 배정 결과는 08:00에 공개됩니다.")
+            st.info(f"({today_str})   08:00 .")
         else:
-            if st.button("배정 계산 실행", type="primary"):
+            if st.button("  ", type="primary"):
                 # Allocation Logic
                 admin_slots = 1
                 tower_slots = 2
@@ -878,17 +895,17 @@ else:
                 # Guests first
                 for g in guest_c:
                     assigned = False
-                    if "관리실" in g["location"]:
+                    if "" in g["location"]:
                         if admin_slots > 0:
                             result_admin.append(g["display_name"])
                             admin_slots -= 1
                             assigned = True
-                    elif "타워" in g["location"]:
+                    elif "" in g["location"]:
                         if tower_slots > 0:
                             result_tower.append(g["display_name"])
                             tower_slots -= 1
                             assigned = True
-                    elif "상관없음" in g["location"]:
+                    elif "" in g["location"]:
                         if tower_slots > 0:
                             result_tower.append(g["display_name"])
                             tower_slots -= 1
@@ -941,7 +958,7 @@ else:
                 })
                 save_json(HISTORY_FILE, history)
                 
-                st.success("✅ 배정이 완료되었습니다!")
+                st.success("  !")
                 st.rerun()
     
     # ============================================
@@ -951,18 +968,18 @@ else:
         # Header with Excel Button
         col_header, col_excel = st.columns([8, 2])
         with col_header:
-            st.markdown("### 직원 관리")
+            st.markdown("###  ")
         with col_excel:
-            if st.button("📥 엑셀", use_container_width=True):
+            if st.button(" ", use_container_width=True):
                 # Create DataFrame for export
                 export_data = []
                 for u in users:
                     export_data.append({
-                        "이름": u["name"],
-                        "차종": u["car_type"],
-                        "차 번호": u.get("car_number", ""),
-                        "상세 차종": u.get("car_details", ""),
-                        "마지막 주차일": u.get("last_parked_date", "")
+                        "": u["name"],
+                        "": u["car_type"],
+                        " ": u.get("car_number", ""),
+                        " ": u.get("car_details", ""),
+                        " ": u.get("last_parked_date", "")
                     })
                 df = pd.DataFrame(export_data)
                 
@@ -975,7 +992,7 @@ else:
                     file_data = f.read()
                 
                 st.download_button(
-                    label="다운로드",
+                    label="",
                     data=file_data,
                     file_name="staff_list.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -983,21 +1000,21 @@ else:
                 )
         
         # Add New Staff
-        with st.expander("➕ 새 직원 추가"):
+        with st.expander("   "):
             with st.form("add_staff_form"):
                 col1, col2 = st.columns(2)
-                new_name = col1.text_input("이름")
-                new_car = col2.selectbox("차종", ["SEDAN", "SUV"])
+                new_name = col1.text_input("")
+                new_car = col2.selectbox("", ["SEDAN", "SUV"])
                 
                 col3, col4 = st.columns(2)
-                new_car_num = col3.text_input("차 번호 (선택)")
-                new_car_detail = col4.text_input("상세 차종 (선택)")
+                new_car_num = col3.text_input("  ()")
+                new_car_detail = col4.text_input("  ()")
                 
-                if st.form_submit_button("추가", type="primary"):
+                if st.form_submit_button("", type="primary"):
                     if not new_name:
-                        st.error("이름을 입력해주세요.")
+                        st.error(" .")
                     elif any(u["name"] == new_name for u in users):
-                        st.error("이미 등록된 이름입니다.")
+                        st.error("  .")
                     else:
                         users.append({
                             "name": new_name,
@@ -1007,23 +1024,23 @@ else:
                             "last_parked_date": None
                         })
                         save_json(USERS_FILE, users)
-                        st.success(f"✅ {new_name}님이 추가되었습니다!")
+                        st.success(f" {new_name} !")
                         st.rerun()
         
         st.divider()
         
         # Staff List (Table Format)
         if users:
-            st.markdown("#### 등록된 직원")
+            st.markdown("####  ")
             
             # Table Header
             st.markdown("""
             <div style="display: flex; font-weight: bold; color: #6b7684; margin-bottom: 8px; padding: 0 10px;">
-                <div style="flex: 2;">이름</div>
-                <div style="flex: 1;">차종</div>
-                <div style="flex: 1.5;">차 번호</div>
-                <div style="flex: 1.5;">상세 차종</div>
-                <div style="flex: 2;">마지막 주차일</div>
+                <div style="flex: 2;"></div>
+                <div style="flex: 1;"></div>
+                <div style="flex: 1.5;"> </div>
+                <div style="flex: 1.5;"> </div>
+                <div style="flex: 2;"> </div>
                 <div style="flex: 0.6;"></div>
                 <div style="flex: 0.6;"></div>
             </div>
@@ -1039,16 +1056,16 @@ else:
                         old_name = u["name"]
                         old_car = u["car_type"]
                         
-                        edit_name = c1.text_input("이름", value=u["name"])
-                        edit_car = c2.selectbox("차종", ["SEDAN", "SUV"], index=0 if u["car_type"]=="SEDAN" else 1)
-                        edit_num = c3.text_input("차 번호", value=u.get("car_number", ""))
-                        edit_detail = c4.text_input("상세 차종", value=u.get("car_details", ""))
+                        edit_name = c1.text_input("", value=u["name"])
+                        edit_car = c2.selectbox("", ["SEDAN", "SUV"], index=0 if u["car_type"]=="SEDAN" else 1)
+                        edit_num = c3.text_input(" ", value=u.get("car_number", ""))
+                        edit_detail = c4.text_input(" ", value=u.get("car_details", ""))
                         
                         save_col, cancel_col = st.columns([1, 1])
-                        if save_col.form_submit_button("💾 저장", type="primary"):
+                        if save_col.form_submit_button(" ", type="primary"):
                             # Check duplicate name if changed
                             if edit_name != u["name"] and any(user["name"] == edit_name for user in users):
-                                st.error("이미 존재하는 이름입니다.")
+                                st.error("  .")
                             else:
                                 u["name"] = edit_name
                                 u["car_type"] = edit_car
@@ -1098,10 +1115,10 @@ else:
                                     save_json(HISTORY_FILE, history)
                                 
                                 st.session_state[f"editing_user_{idx}"] = False
-                                st.success(f"✅ {edit_name}님의 정보가 수정되고 관련 기록이 업데이트되었습니다!")
+                                st.success(f" {edit_name}     !")
                                 st.rerun()
                         
-                        if cancel_col.form_submit_button("❌ 취소"):
+                        if cancel_col.form_submit_button(" "):
                             st.session_state[f"editing_user_{idx}"] = False
                             st.rerun()
                 else:
@@ -1131,11 +1148,11 @@ else:
                     
                     col5.write(last_parked_date)
                     
-                    if col6.button("✏️", key=f"edit_btn_{idx}"):
+                    if col6.button("", key=f"edit_btn_{idx}"):
                         st.session_state[f"editing_user_{idx}"] = True
                         st.rerun()
                         
-                    if col7.button("🗑️", key=f"del_user_{idx}"):
+                    if col7.button("", key=f"del_user_{idx}"):
                         users.remove(u)
                         save_json(USERS_FILE, users)
                         st.rerun()
@@ -1143,53 +1160,53 @@ else:
                     # Reduced margin for separator
                     st.markdown("<hr style='margin: 4px 0; border: 0; border-top: 1px solid #e8e8ed;'>", unsafe_allow_html=True)
         else:
-            st.info("등록된 직원이 없습니다.")
+            st.info("  .")
     
     # ============================================
     # TAB 3: History
     # ============================================
     with tab3:
-        st.markdown("### 배정 히스토리")
+        st.markdown("###  ")
         
         # Manual Entry Button
-        if st.button("➕ 수동 배정 추가"):
+        if st.button("   "):
             st.session_state["adding_manual_history"] = True
         
         # Manual Entry Form with Multiselect
         if st.session_state.get("adding_manual_history", False):
             with st.form("manual_history_form"):
-                st.markdown("#### 수동 배정 추가")
+                st.markdown("####   ")
                 
-                manual_date = st.date_input("날짜 선택", value=datetime.now().date())
+                manual_date = st.date_input(" ", value=datetime.now().date())
                 
                 # Create staff options list
                 staff_options = [f"{u['name']} ({u['car_type']})" for u in users]
                 
-                st.markdown("**배정 내역 선택** (등록된 직원 중 선택)")
+                st.markdown("**  ** (   )")
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    st.markdown("**🏢 관리실**")
-                    manual_admin = st.multiselect("관리실 배정", staff_options, key="manual_admin_select")
+                    st.markdown("** **")
+                    manual_admin = st.multiselect(" ", staff_options, key="manual_admin_select")
                 
                 with col2:
-                    st.markdown("**🅿️ 타워**")
-                    manual_tower = st.multiselect("타워 배정", staff_options, key="manual_tower_select")
+                    st.markdown("** **")
+                    manual_tower = st.multiselect(" ", staff_options, key="manual_tower_select")
                 
                 with col3:
-                    st.markdown("**⏳ 대기**")
-                    manual_wait = st.multiselect("대기 인원", staff_options, key="manual_wait_select")
+                    st.markdown("**⏳ **")
+                    manual_wait = st.multiselect(" ", staff_options, key="manual_wait_select")
                 
                 col_save, col_cancel = st.columns(2)
                 with col_save:
-                    if st.form_submit_button("💾 저장", type="primary"):
+                    if st.form_submit_button(" ", type="primary"):
                         date_str = str(manual_date)
                         
                         # Check if date already exists
                         existing_idx = next((i for i, h in enumerate(history) if h["date"] == date_str), None)
                         
                         if existing_idx is not None:
-                            st.error(f"{date_str} 날짜의 배정이 이미 존재합니다. 기존 배정을 수정하거나 삭제해주세요.")
+                            st.error(f"{date_str}    .    .")
                         else:
                             new_entry = {
                                 "date": date_str,
@@ -1201,11 +1218,11 @@ else:
                             history.sort(key=lambda x: x["date"])
                             save_json(HISTORY_FILE, history)
                             st.session_state["adding_manual_history"] = False
-                            st.success(f"✅ {date_str} 배정이 추가되었습니다!")
+                            st.success(f" {date_str}  !")
                             st.rerun()
                 
                 with col_cancel:
-                    if st.form_submit_button("❌ 취소"):
+                    if st.form_submit_button(" "):
                         st.session_state["adding_manual_history"] = False
                         st.rerun()
         
@@ -1213,28 +1230,28 @@ else:
         
         # Date Filter
         if history:
-            st.markdown("#### 날짜 필터")
+            st.markdown("####  ")
             
             col_filter1, col_filter2, col_filter3 = st.columns([2, 2, 1])
             
             with col_filter1:
                 all_dates = sorted([datetime.strptime(h["date"], "%Y-%m-%d").date() for h in history], reverse=True)
                 if all_dates:
-                    start_date = st.date_input("시작 날짜", value=all_dates[-1])
+                    start_date = st.date_input(" ", value=all_dates[-1])
             
             with col_filter2:
                 if all_dates:
-                    end_date = st.date_input("종료 날짜", value=all_dates[0])
+                    end_date = st.date_input(" ", value=all_dates[0])
             
             with col_filter3:
-                if st.button("🔍 필터 적용"):
+                if st.button("  "):
                     st.session_state["filter_applied"] = True
                     st.session_state["filter_start"] = str(start_date)
                     st.session_state["filter_end"] = str(end_date)
                     st.rerun()
             
             if st.session_state.get("filter_applied", False):
-                if st.button("❌ 필터 해제"):
+                if st.button("  "):
                     st.session_state["filter_applied"] = False
                     st.rerun()
             
@@ -1250,56 +1267,56 @@ else:
                 filtered_history = [h for h in history if filter_start <= h["date"] <= filter_end]
             
             if not filtered_history:
-                st.info("선택한 기간에 배정 내역이 없습니다.")
+                st.info("    .")
             else:
-                st.markdown(f"#### 배정 내역 ({len(filtered_history)}건)")
+                st.markdown(f"####   ({len(filtered_history)})")
                 
                 for idx, h in enumerate(reversed(filtered_history)):
-                    with st.expander(f"📅 {h['date']}", expanded=False):
+                    with st.expander(f" {h['date']}", expanded=False):
                         # Edit/Delete buttons - HORIZONTAL
                         # Adjusted columns to give buttons enough width to not wrap
                         col_edit, col_del, col_spacer = st.columns([1.5, 1.5, 7])
                         with col_edit:
-                            if st.button("✏️ 수정", key=f"edit_hist_{h['date']}", use_container_width=True):
+                            if st.button(" ", key=f"edit_hist_{h['date']}", use_container_width=True):
                                 st.session_state[f"editing_hist_{h['date']}"] = True
                                 st.rerun()
                         with col_del:
-                            if st.button("🗑️ 삭제", key=f"del_hist_{h['date']}", use_container_width=True):
+                            if st.button(" ", key=f"del_hist_{h['date']}", use_container_width=True):
                                 st.session_state[f"confirm_del_hist_{h['date']}"] = True
                                 st.rerun()
                         
                         # Delete confirmation
                         if st.session_state.get(f"confirm_del_hist_{h['date']}", False):
-                            st.warning(f"⚠️ {h['date']} 배정을 삭제하시겠습니까?")
+                            st.warning(f" {h['date']}  ?")
                             col_yes, col_no = st.columns(2)
                             with col_yes:
-                                if st.button("✅ 예", key=f"confirm_yes_{h['date']}"):
+                                if st.button(" ", key=f"confirm_yes_{h['date']}"):
                                     history.remove(h)
                                     save_json(HISTORY_FILE, history)
                                     st.session_state[f"confirm_del_hist_{h['date']}"] = False
-                                    st.success("✅ 삭제되었습니다!")
+                                    st.success(" !")
                                     st.rerun()
                             with col_no:
-                                if st.button("❌ 아니오", key=f"confirm_no_{h['date']}"):
+                                if st.button(" ", key=f"confirm_no_{h['date']}"):
                                     st.session_state[f"confirm_del_hist_{h['date']}"] = False
                                     st.rerun()
                         
                         # Edit form with Multiselect
                         if st.session_state.get(f"editing_hist_{h['date']}", False):
                             with st.form(f"edit_hist_form_{h['date']}"):
-                                st.markdown("##### 배정 수정")
+                                st.markdown("#####  ")
                                 
                                 # Create staff options list
                                 staff_options = [f"{u['name']} ({u['car_type']})" for u in users]
                                 
                                 # Helper function to extract base name from history format
                                 def extract_base_name(name_str):
-                                    # Format: "Name (CarType) Time" or "Name (CarType) 수동입력"
+                                    # Format: "Name (CarType) Time" or "Name (CarType) "
                                     # Extract "Name (CarType)" part
                                     parts = name_str.rsplit(' ', 1)  # Split from right
                                     if len(parts) == 2:
                                         last_part = parts[1]
-                                        if ':' in last_part or last_part == '수동입력':
+                                        if ':' in last_part or last_part == '':
                                             return parts[0]  # Return "Name (CarType)"
                                     return name_str  # Return as-is if no time found
                                 
@@ -1316,32 +1333,32 @@ else:
                                 col1, col2, col3 = st.columns(3)
                                 
                                 with col1:
-                                    st.markdown("**🏢 관리실**")
-                                    edit_admin = st.multiselect("관리실", staff_options, default=admin_defaults, key=f"edit_admin_{h['date']}", label_visibility="collapsed")
+                                    st.markdown("** **")
+                                    edit_admin = st.multiselect("", staff_options, default=admin_defaults, key=f"edit_admin_{h['date']}", label_visibility="collapsed")
                                 
                                 with col2:
-                                    st.markdown("**🅿️ 타워**")
-                                    edit_tower = st.multiselect("타워", staff_options, default=tower_defaults, key=f"edit_tower_{h['date']}", label_visibility="collapsed")
+                                    st.markdown("** **")
+                                    edit_tower = st.multiselect("", staff_options, default=tower_defaults, key=f"edit_tower_{h['date']}", label_visibility="collapsed")
                                 
                                 with col3:
-                                    st.markdown("**⏳ 대기**")
-                                    edit_wait = st.multiselect("대기", staff_options, default=wait_defaults, key=f"edit_wait_{h['date']}", label_visibility="collapsed")
+                                    st.markdown("**⏳ **")
+                                    edit_wait = st.multiselect("", staff_options, default=wait_defaults, key=f"edit_wait_{h['date']}", label_visibility="collapsed")
                                 
                                 col_save, col_cancel = st.columns(2)
                                 with col_save:
-                                    submit_save = st.form_submit_button("💾 저장", type="primary", use_container_width=True)
+                                    submit_save = st.form_submit_button(" ", type="primary", use_container_width=True)
                                 with col_cancel:
-                                    submit_cancel = st.form_submit_button("❌ 취소", use_container_width=True)
+                                    submit_cancel = st.form_submit_button(" ", use_container_width=True)
                                 
                                 # Handle form submission outside the columns
                                 if submit_save:
-                                    # Save with "Name (CarType) 수동입력" format for edited entries
-                                    h["admin"] = [f"{item} 수동입력" for item in edit_admin]
-                                    h["tower"] = [f"{item} 수동입력" for item in edit_tower]
-                                    h["wait"] = [f"{item} 수동입력" for item in edit_wait]
+                                    # Save with "Name (CarType) " format for edited entries
+                                    h["admin"] = [f"{item} " for item in edit_admin]
+                                    h["tower"] = [f"{item} " for item in edit_tower]
+                                    h["wait"] = [f"{item} " for item in edit_wait]
                                     save_json(HISTORY_FILE, history)
                                     st.session_state[f"editing_hist_{h['date']}"] = False
-                                    st.success("✅ 저장되었습니다!")
+                                    st.success(" !")
                                     st.rerun()
                                 
                                 if submit_cancel:
@@ -1351,85 +1368,85 @@ else:
                             # Display current allocation
                             col1, col2, col3 = st.columns(3)
                             with col1:
-                                st.markdown("**🏢 관리실**")
+                                st.markdown("** **")
                                 for item in h["admin"]:
                                     st.write(f"• {item}")
                                 if not h["admin"]:
-                                    st.caption("(배정 없음)")
+                                    st.caption("( )")
                             with col2:
-                                st.markdown("**🅿️ 타워**")
+                                st.markdown("** **")
                                 for item in h["tower"]:
                                     st.write(f"• {item}")
                                 if not h["tower"]:
-                                    st.caption("(배정 없음)")
+                                    st.caption("( )")
                             with col3:
-                                st.markdown("**⏳ 대기**")
+                                st.markdown("**⏳ **")
                                 for item in h["wait"]:
                                     st.write(f"• {item}")
                                 if not h["wait"]:
-                                    st.caption("(대기 없음)")
+                                    st.caption("( )")
         else:
-            st.info("히스토리가 없습니다.")
+            st.info(" .")
     
     # ============================================
     # TAB 4: Data Management
     # ============================================
     with tab4:
-        st.markdown("### 데이터 관리")
+        st.markdown("###  ")
         
-        st.markdown("### ☁️ 데이터 저장 확인 (GitHub)")
+        st.markdown("###     (GitHub)")
         
-        if st.button("🔄 GitHub 저장 상태 확인하기"):
-            with st.spinner("GitHub와 통신 중입니다..."):
+        if st.button(" GitHub   "):
+            with st.spinner("GitHub  ..."):
                 try:
                     gh_history = github_sync.load_from_github(HISTORY_FILE, [])
                     if gh_history is None:
-                        st.error("❌ GitHub 연결 실패! 데이터가 저장되지 않았을 수 있습니다.")
+                        st.error(" GitHub  !     .")
                     else:
                         local_count = len(history)
                         gh_count = len(gh_history)
                         
                         if local_count == gh_count:
                             if local_count > 0 and history[-1] == gh_history[-1]:
-                                st.success(f"✅ **저장 성공!** (로컬 {local_count}건 = GitHub {gh_count}건)")
-                                st.info(f"최근 데이터: {history[-1]['date']}")
+                                st.success(f" ** !** ( {local_count} = GitHub {gh_count})")
+                                st.info(f" : {history[-1]['date']}")
                             else:
-                                st.success(f"✅ 개수는 맞지만 내용이 다를 수 있습니다. (로컬 {local_count}건 = GitHub {gh_count}건)")
+                                st.success(f"      . ( {local_count} = GitHub {gh_count})")
                         else:
-                            st.warning(f"⚠️ **데이터 불일치!** (로컬 {local_count}건 vs GitHub {gh_count}건)")
-                            st.write("방금 저장했다면 10초 뒤에 다시 눌러보세요.")
+                            st.warning(f" ** !** ( {local_count} vs GitHub {gh_count})")
+                            st.write("  10   .")
                 except Exception as e:
-                    st.error(f"확인 중 오류 발생: {e}")
+                    st.error(f"   : {e}")
         
         st.divider()
 
-        st.warning("⚠️ 위험 구역")
+        st.warning("  ")
         
-        if st.button("🗑️ 오늘 신청 내역 초기화", type="secondary"):
+        if st.button("    ", type="secondary"):
             st.session_state["confirm_reset"] = True
         
         if st.session_state.get("confirm_reset", False):
-            st.error("⚠️ 정말로 오늘의 신청 내역을 초기화하시겠습니까?")
+            st.error("     ?")
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ 예, 초기화합니다", type="primary"):
+                if st.button(" , ", type="primary"):
                     if os.path.exists(REQUESTS_FILE):
                         os.remove(REQUESTS_FILE)
                     st.session_state["confirm_reset"] = False
-                    st.success("✅ 신청 내역이 초기화되었습니다!")
+                    st.success("   !")
                     st.rerun()
             with col2:
-                if st.button("❌ 아니오, 취소합니다"):
+                if st.button(" , "):
                     st.session_state["confirm_reset"] = False
                     st.rerun()
         
         st.divider()
         
         # Current Applications
-        st.markdown("#### 현재 신청 현황")
+        st.markdown("####   ")
         
         if requests_data["applicants"]:
-            st.markdown("**직원 신청**")
+            st.markdown("** **")
             for app in requests_data["applicants"]:
                 name = app["name"] if isinstance(app, dict) else app
                 col1, col2 = st.columns([5, 1])
@@ -1440,7 +1457,7 @@ else:
                     st.rerun()
         
         if requests_data["guests"]:
-            st.markdown("**손님 신청**")
+            st.markdown("** **")
             for i, g in enumerate(requests_data["guests"]):
                 col1, col2 = st.columns([5, 1])
                 col1.write(f"{g['name']} - {g['researcher']}")
