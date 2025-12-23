@@ -23,28 +23,45 @@ import requests # Ensure requests is imported
 def local_css():
     st.markdown("""
     <style>
-        /* Global Font & Colors - Toss Style */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        /* Global Font & Colors - FinTech Blue Style */
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff');
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         :root {
-            --toss-blue: #3182f6;
-            --toss-blue-hover: #1b64da;
-            --toss-gray-50: #f9fafb;
-            --toss-gray-100: #f2f4f6;
-            --toss-gray-200: #e5e8eb;
-            --toss-gray-300: #d1d6db;
-            --toss-gray-400: #b0b8c1;
-            --toss-gray-900: #191f28;
-            --toss-green: #0bc471;
-            --toss-orange: #ff6f0f;
-            --toss-red: #f04452;
-            --toss-purple: #8b5cf6;
+            --primary-blue: #3182f6;
+            --primary-blue-hover: #1b64da;
+            --bg-white: #ffffff;
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
+        }
+        
+        /* Background Pattern: Dots */
+        .stApp {
+            background-color: #ffffff;
+            background-image: radial-gradient(#d1d6db 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         
         html, body, [class*="css"] {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            color: var(--toss-gray-900);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            color: var(--text-dark);
+        }
+        
+        /* Headers - Gmarket Sans for Title */
+        h1 {
+            font-family: 'GmarketSansBold', sans-serif !important;
+            color: var(--primary-blue) !important;
+            font-size: 2.8rem !important;
+            text-align: center !important;
+            margin-bottom: 0.5rem !important;
+            letter-spacing: -0.03em !important;
+            text-shadow: 0 0 0 transparent; /* Clean cut */
+        }
+        h2, h3 {
+            font-family: 'Pretendard', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.02em !important;
         }
         
         /* Hide Streamlit branding */
@@ -52,194 +69,74 @@ def local_css():
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        /* Main Container */
-        .main {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 0 !important;
-        }
-        
+        /* Main Container Cleanup */
         .block-container {
-            padding-top: 2rem !important;
-            padding-bottom: 2rem !important;
-            max-width: 1200px !important;
+            padding-top: 3rem !important;
+            padding-bottom: 5rem !important;
+            max-width: 800px !important; /* Mobile friendly max width */
         }
         
-        /* Action Cards - Toss Style */
-        .action-card {
-            background: white;
-            border-radius: 24px;
-            padding: 40px 32px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        
-        .action-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-            border-color: var(--toss-blue);
-        }
-        
-        .action-card-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            display: block;
-        }
-        
-        .action-card-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--toss-gray-900);
-            margin-bottom: 8px;
-        }
-        
-        .action-card-desc {
-            font-size: 1rem;
-            color: var(--toss-gray-400);
-            line-height: 1.5;
-        }
-        
-        /* Admin Link */
-        .admin-link {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        /* Headers */
-        h1 {
-            font-size: 2.5rem !important;
-            font-weight: 800 !important;
-            letter-spacing: -0.02em !important;
-            color: var(--toss-gray-900) !important;
-            text-align: center !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: var(--toss-gray-900);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-        
-        /* Buttons - Toss Style */
-        .stButton > button {
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            border: none;
-            padding: 14px 28px;
-            transition: all 0.2s ease;
-            letter-spacing: -0.01em;
+        /* Toggle Buttons (Custom Tabs) */
+        div.stButton > button {
             width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background-color: white;
+            color: var(--text-gray);
+            font-weight: 600;
+            padding: 12px 0;
+            transition: all 0.2s ease;
         }
         
-        .stButton > button[kind="primary"] {
-            background-color: var(--toss-blue);
+        /* Active State logic handled via inline styles usually, but we define classes for reuse if needed */
+        
+        /* Primary Action Button (Save/Submit) */
+        div.stButton > button[kind="primary"] {
+            background-color: var(--primary-blue);
             color: white;
             border: none;
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
+        }
+        div.stButton > button[kind="primary"]:hover {
+            background-color: var(--primary-blue-hover);
+            transform: translateY(-1px);
         }
         
-        .stButton > button[kind="primary"]:hover {
-            background-color: var(--toss-blue-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(49, 130, 246, 0.4);
-        }
-        
-        .stButton > button[kind="secondary"] {
-            background-color: var(--toss-gray-100);
-            color: var(--toss-gray-900);
-            border: none;
-        }
-        
-        /* Forms */
-        .stTextInput > div > div,
-        .stSelectbox > div > div,
-        .stTextArea > div > div {
-            border-radius: 12px;
-            border: 2px solid var(--toss-gray-200);
+        /* Secondary/Inactive Buttons */
+        div.stButton > button[kind="secondary"] {
             background-color: white;
-            transition: all 0.2s ease;
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
         }
-        
-        .stTextInput > div > div:focus-within,
-        .stSelectbox > div > div:focus-within,
-        .stTextArea > div > div:focus-within {
-            border-color: var(--toss-blue);
-            box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.1);
+        div.stButton > button[kind="secondary"]:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            background-color: #f5f9ff;
         }
-        
-        /* Tabs - Clean Style */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-            background-color: var(--toss-gray-100);
+
+        /* Inputs & Forms */
+        .stTextInput > div > div, .stSelectbox > div > div {
             border-radius: 12px;
-            padding: 6px;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            height: 44px;
-            background-color: transparent;
-            border-radius: 8px;
-            color: var(--toss-gray-900);
-            font-weight: 600;
-            font-size: 15px;
-            padding: 0 20px;
-            transition: all 0.2s ease;
-        }
-        
-        .stTabs [aria-selected="true"] {
-            background-color: white !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-        
-        /* Success/Warning/Error */
-        .stSuccess {
-            background-color: rgba(11, 196, 113, 0.1);
-            border-left: 4px solid var(--toss-green);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .stWarning {
-            background-color: rgba(255, 111, 15, 0.1);
-            border-left: 4px solid var(--toss-orange);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .stError {
-            background-color: rgba(240, 68, 82, 0.1);
-            border-left: 4px solid var(--toss-red);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .stInfo {
-            background-color: rgba(49, 130, 246, 0.1);
-            border-left: 4px solid var(--toss-blue);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        /* Expander */
-        .streamlit-expanderHeader {
+            border: 1px solid var(--border-light);
             background-color: white;
-            border-radius: 12px;
-            border: 2px solid var(--toss-gray-200);
-            font-weight: 600;
+        }
+        .stTextInput > div > div:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.1);
         }
         
-        /* Modal/Container Cards */
-        .element-container {
-            background-color: white;
+        /* Metric & Info Boxes */
+        .stSuccess, .stInfo, .stWarning, .stError {
             border-radius: 16px;
-            padding: 24px;
+            border: none;
+            padding: 16px;
         }
+        .stSuccess { background-color: #e8f9f0; color: #029e5a; }
+        .stInfo { background-color: #f2f7fe; color: #3182f6; }
+        .stWarning { background-color: #fff8e1; color: #ffab00; }
+        .stError { background-color: #fef0f0; color: #e92c2c; }
+        
+        /* Custom Tab Styling for Toggle Effect - We will simulate this with columns of buttons */
     </style>
     """, unsafe_allow_html=True)
 
@@ -700,299 +597,156 @@ if st.session_state.page == "main":
     # Inject CSS for Card Buttons (Secondary Buttons on Main Page)
     # Dynamic Colors based on State
     # Staff Card: Blue if form is open
-    staff_bg = "var(--toss-blue)" if st.session_state.show_staff_form else "white"
-    staff_text = "white" if st.session_state.show_staff_form else "var(--toss-gray-900)"
-    staff_border = "transparent"
+    # ============================================
+    # 3-BUTTON TOGGLE MENU (Mobile Friendly)
+    # ============================================
     
-    # Guest Card: Blue if form is open
-    guest_bg = "var(--toss-blue)" if st.session_state.show_guest_form else "white"
-    guest_text = "white" if st.session_state.show_guest_form else "var(--toss-gray-900)"
-    guest_border = "transparent"
+    # Initialize active tab if not set (default to Staff Form)
+    if "active_tab" not in st.session_state:
+        st.session_state.active_tab = "staff" # staff, guest, sante
     
-    # Sante Card: Blue if 'Do' (opt_out=False), Red if 'Don't' (opt_out=True)
-    if requests_data["sante_opt_out"]:
-        # Don't (Opt-out = True) -> Red
-        sante_bg = "var(--toss-red)"
-        sante_text = "white"
-        sante_border = "transparent"
-    else:
-        # Do (Opt-out = False) -> Blue
-        sante_bg = "var(--toss-blue)"
-        sante_text = "white"
-        sante_border = "transparent"
+    # Button Row
+    # We use columns to place buttons side-by-side
+    col_t1, col_t2, col_t3 = st.columns(3)
     
-    # Static CSS (no variables, no f-string needed)
-    # FIX: Use variable assignment to avoid SyntaxError
-    css_static = """
-    <style>
-    .stButton > button[kind="secondary"] {
-        background-color: white;
-        border: 2px solid transparent;
-        border-radius: 24px;
-        height: 180px !important;
-        white-space: pre;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 0 10px;
-    }
+    # Define styles based on active state
+    # Staff Button
+    with col_t1:
+        if st.session_state.active_tab == "staff":
+            st.button("내일 주차 신청", key="tab_staff", type="primary", use_container_width=True)
+        else:
+            if st.button("내일 주차 신청", key="tab_staff", kind="secondary", use_container_width=True):
+                st.session_state.active_tab = "staff"
+                st.rerun()
+
+    # Guest Button
+    with col_t2:
+        if st.session_state.active_tab == "guest":
+            st.button("외부인 주차", key="tab_guest", type="primary", use_container_width=True)
+        else:
+            if st.button("외부인 주차", key="tab_guest", kind="secondary", use_container_width=True):
+                st.session_state.active_tab = "guest"
+                st.rerun()
+
+    # Sante Button
+    with col_t3:
+        if st.session_state.active_tab == "sante":
+            st.button("산테 알림", key="tab_sante", type="primary", use_container_width=True)
+        else:
+            if st.button("산테 알림", key="tab_sante", kind="secondary", use_container_width=True):
+                st.session_state.active_tab = "sante"
+                st.rerun()
     
-    .stButton > button[kind="secondary"]:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        border-color: var(--toss-blue);
-        background-color: white;
-        color: inherit;
-    }
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
     
-    .stButton > button[kind="secondary"] p::first-line {
-        font-size: 22px;
-        font-weight: 800;
-        line-height: 2.0;
-    }
+    # ============================================
+    # INTERACTION AREA (Forms appear here)
+    # ============================================
     
-    .stButton > button[kind="secondary"] p {
-        font-size: 13px !important;
-        font-weight: 400 !important;
-        color: #191f28 !important;
-        line-height: 1.4 !important;
-        display: block !important;
-        width: 100% !important;
-        margin: 0 !important;
-    }
-    
-    div[data-testid="stMetric"] {
-        text-align: center;
-        justify-content: center;
-    }
-    
-    div[data-testid="stMetricLabel"] {
-        justify-content: center;
-    }
-    
-    div[data-testid="stMetricValue"] {
-        justify-content: center;
-    }
-    
-    /* Mobile Responsive - Optimize vertical layout */
-    @media (max-width: 768px) {
-        /* Reduce spacing between elements */
-        .block-container {
-            padding-top: 1rem !important;
-            padding-bottom: 1rem !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-        }
-        
-        /* Reduce title sizes */
-        h1 {
-            font-size: 1.5rem !important;
-            margin-bottom: 0.3rem !important;
-        }
-        
-        .subtitle {
-            font-size: 0.85rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        /* Make cards more compact */
-        div[data-testid="column"] {
-            padding: 0 0.25rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        .stButton > button[kind="secondary"] {
-            height: 100px !important;
-            font-size: 10px !important;
-            padding: 0.5rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        .stButton > button[kind="secondary"] p::first-line {
-            font-size: 15px !important;
-            line-height: 1.5 !important;
-        }
-        
-        .stButton > button[kind="secondary"] p {
-            font-size: 11px !important;
-            line-height: 1.3 !important;
-        }
-        
-        /* Reduce metric spacing */
-        div[data-testid="stMetric"] {
-            margin-bottom: 0.5rem !important;
-        }
-        
-        /* Reduce divider margins */
-        hr {
-            margin: 0.5rem 0 !important;
-        }
-    }
-    </style>
-    """
-    st.markdown(css_static, unsafe_allow_html=True)
-    
-    # Dynamic CSS (with variables, using f-string)
-    st.markdown(f"""
-    <style>
-    div[data-testid="column"]:nth-of-type(1) .stButton > button[kind="secondary"] {{
-        background-color: {staff_bg} !important;
-        color: {staff_text} !important;
-        border-color: {staff_border} !important;
-    }}
-    
-    div[data-testid="column"]:nth-of-type(2) .stButton > button[kind="secondary"] {{
-        background-color: {guest_bg} !important;
-        color: {guest_text} !important;
-        border-color: {guest_border} !important;
-    }}
-    
-    div[data-testid="column"]:nth-of-type(3) .stButton > button[kind="secondary"] {{
-        background-color: {sante_bg} !important;
-        color: {sante_text} !important;
-        border-color: {sante_border} !important;
-    }}
-    
-    div[data-testid="column"]:nth-of-type(1) .stButton > button[kind="secondary"]:hover {{
-        background-color: {staff_bg} !important;
-        color: {staff_text} !important;
-        opacity: 0.9;
-    }}
-    div[data-testid="column"]:nth-of-type(2) .stButton > button[kind="secondary"]:hover {{
-        background-color: {guest_bg} !important;
-        color: {guest_text} !important;
-        opacity: 0.9;
-    }}
-    div[data-testid="column"]:nth-of-type(3) .stButton > button[kind="secondary"]:hover {{
-        background-color: {sante_bg} !important;
-        color: {sante_text} !important;
-        opacity: 0.9;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Create 3 columns
-    card_col1, card_col2, card_col3 = st.columns(3)
-    
-    # Card 1: Staff Application
-    with card_col1:
-        btn_text = "내일 주차 신청\n\n리서처 주차 신청을 진행합니다"
-        if st.button(btn_text, key="card_staff", use_container_width=True, type="secondary"):
-            st.session_state.show_staff_form = not st.session_state.show_staff_form
-            st.session_state.show_guest_form = False
-            st.rerun()
-    
-    # Card 2: Guest Application
-    with card_col2:
-        btn_text = "내일 외부인 주차 신청\n\n방문 손님의 주차를 등록합니다"
-        if st.button(btn_text, key="card_guest", use_container_width=True, type="secondary"):
-            st.session_state.show_guest_form = not st.session_state.show_guest_form
-            st.session_state.show_staff_form = False
-            st.rerun()
-    
-    # Card 3: Sante Option
-    with card_col3:
-        current_sante = requests_data["sante_opt_out"]
-        sante_title = "상떼 주차 함" if not current_sante else "상떼 주차 안 함"
-        sante_desc = "타워 2대 사용 가능" if not current_sante else "타워 3대 사용 가능"
-        
-        btn_text = f"{sante_title}\n\n{sante_desc}"
-        
-        if st.button(btn_text, key="card_sante", use_container_width=True, type="secondary"):
-            requests_data["sante_opt_out"] = not current_sante
-            save_json(REQUESTS_FILE, requests_data)
-            st.rerun()
-    
-    # Forms appear right after the cards (before status)
-    
-    # Staff Form (if active)
-    if st.session_state.show_staff_form:
+    # 1. STAFF FORM
+    if st.session_state.active_tab == "staff":
         with st.container():
-            st.markdown("### 직원 주차 신청")
+            st.markdown("##### 📝 직원 주차 신청")
             
-            if not users:
-                st.error("등록된 직원이 없습니다. 관리자 페이지에서 직원을 먼저 등록해주세요.")
-            else:
-                user_map = {f"{u['name']} ({u['car_type']})": u['name'] for u in users}
-                user_options = ["선택해주세요"] + list(user_map.keys())
+            with st.form("staff_parking_form"):
+                staff_names = [u["name"] for u in users]
+                if not staff_names:
+                    st.warning("등록된 직원이 없습니다. 관리자 페이지에서 직원을 먼저 등록해주세요.")
+                    name_select = st.text_input("이름 (직원 등록 필요)")
+                else:
+                    name_select = st.selectbox("이름을 선택하세요", ["선택해주세요"] + staff_names)
                 
-                selected_option = st.selectbox("이름 선택", user_options, key="staff_selector")
+                submit = st.form_submit_button("신청하기", type="primary", use_container_width=True)
                 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("신청하기", type="primary", use_container_width=True):
-                        if selected_option == "선택해주세요":
-                            st.error("이름을 선택해주세요.")
+                if submit:
+                    if name_select == "선택해주세요":
+                        st.error("이름을 선택해주세요.")
+                    else:
+                        # Check duplicate
+                        is_duplicate = False
+                        for app in requests_data["applicants"]:
+                            uname = app["name"] if isinstance(app, dict) else app
+                            if uname == name_select:
+                                is_duplicate = True
+                                break
+                        
+                        if is_duplicate:
+                            st.warning(f"이미 {name_select}님의 신청이 접수되어 있습니다.")
                         else:
-                            name = user_map[selected_option]
-                            if any(a["name"] == name for a in requests_data["applicants"]):
-                                st.error("이미 신청되었습니다.")
-                            else:
-                                requests_data["applicants"].append({
-                                    "name": name,
-                                    "timestamp": datetime.now().isoformat()
-                                })
-                                save_json(REQUESTS_FILE, requests_data)
-                                st.success(f"✅ {name}님의 주차 신청이 완료되었습니다!")
-                                st.session_state.show_staff_form = False
-                                st.rerun()
-                
-                with col2:
-                    if st.button("취소", use_container_width=True, type="primary"):
-                        st.session_state.show_staff_form = False
-                        st.rerun()
-    
-    # Guest Form (if active)
-    if st.session_state.show_guest_form:
+                            # Add to requests
+                            new_req = {
+                                "name": name_select,
+                                "timestamp": datetime.now().isoformat()
+                            }
+                            requests_data["applicants"].append(new_req)
+                            save_json(REQUESTS_FILE, requests_data)
+                            st.success(f"✅ {name_select}님 주차 신청 완료!")
+                            st.rerun()
+
+    # 2. GUEST FORM
+    elif st.session_state.active_tab == "guest":
         with st.container():
-            st.markdown("### 외부인 주차 신청")
+            st.markdown("##### 🚙 외부인 주차 신청")
             
-            g_car = st.radio("차종", ["SEDAN", "SUV"], horizontal=True, key="guest_car_type")
-            
-            if g_car == "SUV":
-                st.caption("ℹ️ SUV는 타워 주차가 불가능합니다.")
-                valid_locs = ["관리실(ADMIN)"]
-            else:
-                valid_locs = ["관리실(ADMIN)", "타워(TOWER)", "상관없음(ANY)"]
-            
-            g_loc = st.radio("주차 희망 위치", valid_locs, horizontal=True)
-            
-            col1, col2 = st.columns(2)
-            g_name = col1.text_input("손님 성함/정보 (필수)")
-            g_researcher = col2.text_input("등록 리서처 (필수)")
-            
-            g_reason = st.text_input("방문 목적 (필수)")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("등록하기", type="primary", use_container_width=True):
-                    if not g_name or not g_researcher or not g_reason:
-                        st.error("모든 필수 정보를 입력해주세요.")
+            with st.form("guest_parking_form"):
+                g_researcher_options = [u["name"] for u in users]
+                g_researcher = st.selectbox("담당 연구원", g_researcher_options if g_researcher_options else ["직원 등록 필요"], key="g_res")
+                g_name = st.text_input("방문자 성함/업체명", placeholder="예: 김방문 (ABC상사)")
+                col_c1, col_c2 = st.columns(2)
+                g_car = col_c1.selectbox("차종", ["SEDAN", "SUV/VAN"], key="g_car")
+                g_loc = col_c2.selectbox("희망 주차 위치", ["타워 (기계식)", "관리실 앞 (지상)"], key="g_loc")
+                
+                submit_guest = st.form_submit_button("방문 주차 신청", type="primary", use_container_width=True)
+                
+                if submit_guest:
+                    if not g_name:
+                        st.error("방문자 이름을 입력해주세요.")
                     else:
                         new_guest = {
                             "name": g_name,
-                            "car_type": g_car,
+                            "car_type": "SEDAN" if g_car=="SEDAN" else "SUV",
                             "location": g_loc,
-                            "reason": g_reason,
+                            "reason": "방문",
                             "researcher": g_researcher,
                             "timestamp": datetime.now().isoformat()
                         }
                         requests_data["guests"].append(new_guest)
                         save_json(REQUESTS_FILE, requests_data)
-                        st.success(f"✅ {g_name}님의 외부인 주차가 등록되었습니다!")
-                        st.session_state.show_guest_form = False
+                        st.success(f"✅ {g_name} 방문 주차 신청 완료!")
                         st.rerun()
+
+    # 3. SANTE ALERT TOGGLE
+    elif st.session_state.active_tab == "sante":
+        with st.container():
+            st.markdown("##### 🔔 산테 알림 설정")
             
-            with col2:
-                if st.button("취소", use_container_width=True, type="primary"):
-                    st.session_state.show_guest_form = False
+            # Current Status
+            is_visiting = not requests_data.get("sante_opt_out", False) # Default False means Visiting? No.
+            # Logic check: 'sante_opt_out': True means "User Opted Out of Sante", so Sante is NOT visiting?
+            # Or "Opt Out of allocation"?
+            # Let's trust the previous UI logic:
+            # "sante_title = '상떼 주차 함' if not current_sante else '상떼 주차 안 함'"
+            # current_sante = requests_data["sante_opt_out"]
+            # If opt_out is False -> "상떼 주차 함" (Sante Visiting)
+            # If opt_out is True -> "상떼 주차 안 함" (Sante Not Visiting)
+            
+            is_visiting = not requests_data.get("sante_opt_out", False)
+            
+            if is_visiting:
+                st.success("⭕ **내일 산테 방문함** (타워 1자리 비움)")
+                st.info("방문이 취소되었다면 아래 버튼을 눌러주세요.")
+                if st.button("방문 취소 (OFF)", use_container_width=True):
+                    requests_data["sante_opt_out"] = True
+                    save_json(REQUESTS_FILE, requests_data)
                     st.rerun()
-    
-    # Status Summary - Below the forms
+            else:
+                st.warning("❌ **내일 산테 방문 안 함**")
+                st.info("방문이 예정되어 있다면 아래 버튼을 눌러주세요.")
+                if st.button("방문 설정 (ON)", type="primary", use_container_width=True):
+                    requests_data["sante_opt_out"] = False
+                    save_json(REQUESTS_FILE, requests_data)
+                    st.rerun()
+
     st.markdown("---")
     
     staff_count = len(requests_data["applicants"])
