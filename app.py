@@ -48,20 +48,18 @@ def local_css():
             color: var(--text-dark);
         }
         
-        /* Headers - Gmarket Sans for Title */
-        h1 {
+        /* Headers - Gmarket Sans for ALL text */
+        h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, button {
             font-family: 'GmarketSansBold', sans-serif !important;
+        }
+        
+        h1 {
             color: var(--primary-blue) !important;
             font-size: 2.8rem !important;
             text-align: center !important;
             margin-bottom: 0.5rem !important;
             letter-spacing: -0.03em !important;
             text-shadow: 0 0 0 transparent; /* Clean cut */
-        }
-        h2, h3 {
-            font-family: 'Pretendard', sans-serif !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.02em !important;
         }
         
         /* Hide Streamlit branding */
@@ -76,42 +74,23 @@ def local_css():
             max-width: 800px !important; /* Mobile friendly max width */
         }
         
-        /* Toggle Buttons (Custom Tabs) */
+        /* ALL Buttons - Unified Blue Style */
         div.stButton > button {
             width: 100%;
             border-radius: 12px;
-            border: 1px solid var(--border-light);
-            background-color: white;
-            color: var(--text-gray);
+            background-color: var(--primary-blue) !important;
+            color: white !important;
+            border: none !important;
             font-weight: 600;
-            padding: 12px 0;
+            padding: 14px 0;
             transition: all 0.2s ease;
-        }
-        
-        /* Active State logic handled via inline styles usually, but we define classes for reuse if needed */
-        
-        /* Primary Action Button (Save/Submit) */
-        div.stButton > button[kind="primary"] {
-            background-color: var(--primary-blue);
-            color: white;
-            border: none;
             box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
         }
-        div.stButton > button[kind="primary"]:hover {
-            background-color: var(--primary-blue-hover);
-            transform: translateY(-1px);
-        }
         
-        /* Secondary/Inactive Buttons */
-        div.stButton > button[kind="secondary"] {
-            background-color: white;
-            color: var(--text-dark);
-            border: 1px solid var(--border-light);
-        }
-        div.stButton > button[kind="secondary"]:hover {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-            background-color: #f5f9ff;
+        div.stButton > button:hover {
+            background-color: var(--primary-blue-hover) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(49, 130, 246, 0.3);
         }
 
         /* Inputs & Forms */
@@ -532,30 +511,28 @@ if st.session_state.page == "main":
     # MAIN MENU (Toggle Buttons)
     # ============================================
     
-    # Initialize active tab if not set (default to Staff Form)
+    # Initialize active tab if not set (default to NONE - all closed)
     if "active_tab" not in st.session_state:
-        st.session_state.active_tab = "staff" # staff, guest, sante
+        st.session_state.active_tab = None # None, "staff", "guest"
     
     # Button Row
     col_t1, col_t2, col_t3 = st.columns(3)
     
     # 1. Staff Button (Tab)
     with col_t1:
-        if st.session_state.active_tab == "staff":
-            st.button("내일 주차 신청", key="tab_staff", type="primary", use_container_width=True)
-        else:
-            if st.button("내일 주차 신청", key="tab_staff", type="secondary", use_container_width=True):
-                st.session_state.active_tab = "staff"
-                st.rerun()
+        if st.button("내일 주차 신청", key="tab_staff", use_container_width=True):
+            if st.session_state.active_tab == "staff":
+                st.session_state.active_tab = None  # Close if already open
+            else:
+                st.session_state.active_tab = "staff"  # Open
 
     # 2. Guest Button (Tab)
     with col_t2:
-        if st.session_state.active_tab == "guest":
-            st.button("외부인 주차", key="tab_guest", type="primary", use_container_width=True)
-        else:
-            if st.button("외부인 주차", key="tab_guest", type="secondary", use_container_width=True):
-                st.session_state.active_tab = "guest"
-                st.rerun()
+        if st.button("외부인 주차", key="tab_guest", use_container_width=True):
+            if st.session_state.active_tab == "guest":
+                st.session_state.active_tab = None  # Close if already open
+            else:
+                st.session_state.active_tab = "guest"  # Open
 
     # 3. Sante Toggle Button (Direct Action)
     with col_t3:
@@ -621,7 +598,7 @@ if st.session_state.page == "main":
                             requests_data["applicants"].append(new_req)
                             save_json(REQUESTS_FILE, requests_data)
                             st.success(f"✅ {name_select}님 주차 신청 완료!")
-                            st.rerun()
+                            st.session_state.active_tab = None  # Close form after submit
 
     # 2. GUEST FORM
     elif st.session_state.active_tab == "guest":
@@ -653,7 +630,7 @@ if st.session_state.page == "main":
                         requests_data["guests"].append(new_guest)
                         save_json(REQUESTS_FILE, requests_data)
                         st.success(f"✅ {g_name} 방문 주차 신청 완료!")
-                        st.rerun()
+                        st.session_state.active_tab = None  # Close form after submit
 
     # Removed Sante Form block as it is now a direct toggle button active above
 
