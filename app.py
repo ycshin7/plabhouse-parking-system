@@ -76,13 +76,14 @@ def local_css():
             max-width: 800px !important; /* Mobile friendly max width */
         }
         
-        /* Toggle Buttons (Custom Tabs) */
+        
+        /* ALL Buttons - Unified Blue Style */
         div.stButton > button {
             width: 100%;
             border-radius: 12px;
-            border: 1px solid var(--border-light);
-            background-color: white;
-            color: var(--text-gray);
+            background-color: var(--primary-blue) !important;
+            color: white !important;
+            border: none !important;
             font-weight: 600;
             font-size: 0.95rem !important;
             padding: 14px 0;
@@ -110,17 +111,6 @@ def local_css():
         div[data-testid="stMetricValue"] {
             font-size: 1.2rem !important;
             justify-content: center;
-        }
-        /* Secondary/Inactive Buttons */
-        div.stButton > button[kind="secondary"] {
-            background-color: white;
-            color: var(--text-dark);
-            border: 1px solid var(--border-light);
-        }
-        div.stButton > button[kind="secondary"]:hover {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-            background-color: #f5f9ff;
         }
 
         /* Inputs & Forms */
@@ -533,71 +523,9 @@ if st.session_state.page == "main":
     st.title("플랩하우스 주차")
     st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
     
-    # ============================================
-    # TODAY'S ALLOCATION RESULTS (if available)
-    # ============================================
-    today_str = str(now_kst.date())
-    history_today = next((h for h in history if h["date"] == today_str), None)
     
-    if history_today:
-        st.markdown("### 📅 오늘의 주차 배정 결과")
-        
-        # Helper function to strip time info
-        def strip_time_display(name_str):
-            parts = name_str.rsplit(' ', 1)
-            if len(parts) == 2:
-                last_part = parts[1]
-                if ':' in last_part or last_part == '수동입력':
-                    return parts[0]
-            return name_str
-        
-        # Calculate capacities
-        admin_capacity = 1
-        tower_capacity = 3 if requests_data["sante_opt_out"] else 2
-        admin_occupied = len(history_today["admin"])
-        tower_occupied = len(history_today["tower"])
-        admin_remaining = admin_capacity - admin_occupied
-        tower_remaining = tower_capacity - tower_occupied
-        
-        # Display results in columns
-        result_col1, result_col2, result_col3 = st.columns(3)
-        
-        with result_col1:
-            st.markdown(f"**🏢 관리실** ({admin_occupied}/{admin_capacity})")
-            if history_today["admin"]:
-                for name in history_today["admin"]:
-                    st.write(f"• {strip_time_display(name)}")
-            else:
-                st.caption("배정 없음")
-        
-        with result_col2:
-            st.markdown(f"**🅿️ 타워** ({tower_occupied}/{tower_capacity})")
-            if history_today["tower"]:
-                for name in history_today["tower"]:
-                    st.write(f"• {strip_time_display(name)}")
-            else:
-                st.caption("배정 없음")
-        
-        with result_col3:
-            st.markdown(f"**⏳ 대기** ({len(history_today['wait'])})")
-            if history_today["wait"]:
-                for name in history_today["wait"]:
-                    st.write(f"• {strip_time_display(name)}")
-            else:
-                st.caption("대기 없음")
-        
-        # Quick Access Button - Fill Remaining Slots
-        if admin_remaining > 0 or tower_remaining > 0:
-            col_spacer, col_button = st.columns([3, 1])
-            with col_button:
-                if st.button("🚗 남은 자리 주차하기", type="primary", use_container_width=True):
-                    # Navigate to admin page and set editing mode for today's history
-                    st.session_state.page = "admin"
-                    st.session_state.admin_tab = "히스토리"  # Set tab to History
-                    st.session_state[f"editing_hist_{today_str}"] = True  # Activate edit mode
-                    st.rerun()
-        
-        st.markdown("---")
+    st.divider()
+
     
     # ============================================
     # 3 ACTION CARDS - BUTTONS AS CARDS
@@ -610,41 +538,46 @@ if st.session_state.page == "main":
     # 3-BUTTON TOGGLE MENU (Mobile Friendly)
     # ============================================
     
-    # Initialize active tab if not set (default to Staff Form)
+    # Initialize active tab if not set (default to NONE - all closed)
     if "active_tab" not in st.session_state:
-        st.session_state.active_tab = "staff" # staff, guest, sante
+        st.session_state.active_tab = None # None, "staff", "guest"
     
     # Button Row
-    # We use columns to place buttons side-by-side
     col_t1, col_t2, col_t3 = st.columns(3)
     
-    # Define styles based on active state
-    # Staff Button
+    # 1. Staff Button (Tab)
     with col_t1:
-        if st.session_state.active_tab == "staff":
-            st.button("내일 주차 신청", key="tab_staff", type="primary", use_container_width=True)
-        else:
-            if st.button("내일 주차 신청", key="tab_staff", type="secondary", use_container_width=True):
-                st.session_state.active_tab = "staff"
-                st.rerun()
+        if st.button("내일 주차 신청", key="tab_staff", use_container_width=True):
+            if st.session_state.active_tab == "staff":
+                st.session_state.active_tab = None  # Close if already open
+            else:
+                st.session_state.active_tab = "staff"  # Open
 
-    # Guest Button
+    # 2. Guest Button (Tab)
     with col_t2:
-        if st.session_state.active_tab == "guest":
-            st.button("외부인 주차", key="tab_guest", type="primary", use_container_width=True)
-        else:
-            if st.button("외부인 주차", key="tab_guest", type="secondary", use_container_width=True):
-                st.session_state.active_tab = "guest"
-                st.rerun()
+        if st.button("외부인 주차", key="tab_guest", use_container_width=True):
+            if st.session_state.active_tab == "guest":
+                st.session_state.active_tab = None  # Close if already open
+            else:
+                st.session_state.active_tab = "guest"  # Open
 
-    # Sante Button
+    # 3. Sante Toggle Button (Direct Action)
     with col_t3:
-        if st.session_state.active_tab == "sante":
-            st.button("산테 알림", key="tab_sante", type="primary", use_container_width=True)
+        # Determine current state
+        is_sante_parking = not requests_data.get("sante_opt_out", False)
+        
+        if is_sante_parking:
+            # Parking ON (Blue)
+            btn_text = "상떼 주차 함"
         else:
-            if st.button("산테 알림", key="tab_sante", type="secondary", use_container_width=True):
-                st.session_state.active_tab = "sante"
-                st.rerun()
+            # Parking OFF (White/Grey)
+            btn_text = "상떼 주차 안 함"
+            
+        if st.button(btn_text, key="btn_sante_toggle", use_container_width=True):
+            # Toggle Logic
+            requests_data["sante_opt_out"] = not requests_data.get("sante_opt_out", False)
+            save_json(REQUESTS_FILE, requests_data)
+            st.rerun()
 
     
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
@@ -656,7 +589,7 @@ if st.session_state.page == "main":
     # 1. STAFF FORM
     if st.session_state.active_tab == "staff":
         with st.container():
-            st.markdown("##### 📝 직원 주차 신청")
+            st.markdown("##### 직원 주차 신청")
             
             with st.form("staff_parking_form"):
                 staff_names = [u["name"] for u in users]
@@ -690,13 +623,13 @@ if st.session_state.page == "main":
                             }
                             requests_data["applicants"].append(new_req)
                             save_json(REQUESTS_FILE, requests_data)
-                            st.success(f"✅ {name_select}님 주차 신청 완료!")
-                            st.rerun()
+                            st.success(f"{name_select}님 주차 신청 완료!")
+                            st.session_state.active_tab = None  # Close form after submit
 
     # 2. GUEST FORM
     elif st.session_state.active_tab == "guest":
         with st.container():
-            st.markdown("##### 🚙 외부인 주차 신청")
+            st.markdown("##### 외부인 주차 신청")
             
             with st.form("guest_parking_form"):
                 g_researcher_options = [u["name"] for u in users]
@@ -722,8 +655,8 @@ if st.session_state.page == "main":
                         }
                         requests_data["guests"].append(new_guest)
                         save_json(REQUESTS_FILE, requests_data)
-                        st.success(f"✅ {g_name} 방문 주차 신청 완료!")
-                        st.rerun()
+                        st.success(f"{g_name} 방문 주차 신청 완료!")
+                        st.session_state.active_tab = None  # Close form after submit
 
     # 3. SANTE ALERT TOGGLE
     elif st.session_state.active_tab == "sante":
