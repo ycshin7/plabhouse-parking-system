@@ -615,7 +615,7 @@ if st.session_state.page == "main":
         if st.session_state.active_tab == "staff":
             st.button("내일 주차 신청", key="tab_staff", type="primary", use_container_width=True)
         else:
-            if st.button("내일 주차 신청", key="tab_staff", kind="secondary", use_container_width=True):
+            if st.button("내일 주차 신청", key="tab_staff", type="secondary", use_container_width=True):
                 st.session_state.active_tab = "staff"
                 st.rerun()
 
@@ -624,7 +624,7 @@ if st.session_state.page == "main":
         if st.session_state.active_tab == "guest":
             st.button("외부인 주차", key="tab_guest", type="primary", use_container_width=True)
         else:
-            if st.button("외부인 주차", key="tab_guest", kind="secondary", use_container_width=True):
+            if st.button("외부인 주차", key="tab_guest", type="secondary", use_container_width=True):
                 st.session_state.active_tab = "guest"
                 st.rerun()
 
@@ -633,9 +633,10 @@ if st.session_state.page == "main":
         if st.session_state.active_tab == "sante":
             st.button("산테 알림", key="tab_sante", type="primary", use_container_width=True)
         else:
-            if st.button("산테 알림", key="tab_sante", kind="secondary", use_container_width=True):
+            if st.button("산테 알림", key="tab_sante", type="secondary", use_container_width=True):
                 st.session_state.active_tab = "sante"
                 st.rerun()
+
     
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
     
