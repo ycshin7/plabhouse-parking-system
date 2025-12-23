@@ -13,6 +13,7 @@ import github_sync # GitHub Persistence Module
 USERS_FILE = "users.json"
 REQUESTS_FILE = "requests.json"
 HISTORY_FILE = "history.json"
+VISITOR_FILE = "visitor_count.json"
 
 # TODO: Enter your Slack Webhook URL here
 SLACK_WEBHOOK_URL = "" 
@@ -254,6 +255,14 @@ if "show_guest_form" not in st.session_state:
 # Load Data
 users = load_json(USERS_FILE, [])
 history = load_json(HISTORY_FILE, [])
+
+# Load and increment visitor count
+visitor_data = load_json(VISITOR_FILE, {"count": 0, "last_updated": str(datetime.now().date())})
+if "visitor_session_counted" not in st.session_state:
+    visitor_data["count"] = visitor_data.get("count", 0) + 1
+    visitor_data["last_updated"] = str(datetime.now().date())
+    save_json(VISITOR_FILE, visitor_data)
+    st.session_state.visitor_session_counted = True
 
 target_date = get_target_date()
 
@@ -520,7 +529,13 @@ if st.session_state.page == "main":
     day_names = ["월", "화", "수", "목", "금", "토", "일"]
     day_of_week = day_names[target_date.weekday()]
     
-    st.title("플랩하우스 주차")
+    # Visitor counter in top-right
+    col_title, col_visitor = st.columns([4, 1])
+    with col_title:
+        st.title("플랩하우스 주차")
+    with col_visitor:
+        st.markdown(f'<div style="text-align: right; padding-top: 20px; font-size: 0.8rem; color: #8b95a1;">방문자: {visitor_data.get("count", 0):,}</div>', unsafe_allow_html=True)
+    
     st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
     
     
