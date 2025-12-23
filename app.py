@@ -529,13 +529,10 @@ if st.session_state.page == "main":
     day_names = ["월", "화", "수", "목", "금", "토", "일"]
     day_of_week = day_names[target_date.weekday()]
     
-    # Visitor counter in top-right
-    col_title, col_visitor = st.columns([4, 1])
-    with col_title:
-        st.title("플랩하우스 주차")
-    with col_visitor:
-        st.markdown(f'<div style="text-align: right; padding-top: 20px; font-size: 0.8rem; color: #8b95a1;">방문자: {visitor_data.get("count", 0):,}</div>', unsafe_allow_html=True)
+    # Visitor counter in top-right (absolute position)
+    st.markdown(f'<div style="position: absolute; top: 10px; right: 20px; font-size: 0.75rem; color: #8b95a1;">방문자: {visitor_data.get("count", 0):,}</div>', unsafe_allow_html=True)
     
+    st.title("플랩하우스 주차")
     st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
     
     
