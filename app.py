@@ -37,11 +37,17 @@ def local_css():
             --border-light: #e5e8eb;
         }
         
-        /* Background Pattern: Dots */
+        /* Background Pattern: Animated Dots */
         .stApp {
             background-color: #ffffff;
             background-image: radial-gradient(#d1d6db 1px, transparent 1px);
             background-size: 20px 20px;
+            animation: backgroundMove 20s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundMove {
+            0%, 100% { background-position: 0 0; }
+            50% { background-position: 20px 20px; }
         }
         
         html, body, [class*="css"] {
@@ -78,33 +84,66 @@ def local_css():
         }
         
         
-        /* ALL Buttons - Unified Blue Style */
+        /* Modern Button Design - Compact & Animated */
         div.stButton > button {
-            width: 100%;
-            border-radius: 12px;
-            background-color: var(--primary-blue) !important;
+            max-width: 280px;
+            margin: 0 auto;
+            display: block;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #1b64da 100%);
             color: white !important;
             border: none !important;
             font-weight: 600;
             font-size: 0.95rem !important;
-            padding: 14px 0;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
+            padding: 16px 32px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(49, 130, 246, 0.25);
+            cursor: pointer;
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
         
+        /* Hover Animation - Scale & Shadow */
         div.stButton > button:hover {
-            background-color: var(--primary-blue-hover) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(49, 130, 246, 0.3);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(49, 130, 246, 0.4);
+        }
+        
+        /* Active/Click Animation */
+        div.stButton > button:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 8px rgba(49, 130, 246, 0.3);
+        }
+        
+        /* Ripple Effect on Click */
+        div.stButton > button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        div.stButton > button:active::before {
+            width: 300px;
+            height: 300px;
         }
         
         /* Metrics - Smaller and Centered */
         div[data-testid="stMetric"] {
             text-align: center;
+            transition: transform 0.2s ease;
         }
+        
+        div[data-testid="stMetric"]:hover {
+            transform: translateY(-2px);
+        }
+        
         div[data-testid="stMetricLabel"] {
             font-size: 0.75rem !important;
             justify-content: center;
