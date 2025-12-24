@@ -230,6 +230,28 @@ def main():
     else:
         print(f"❌ {msg}")
     
+    # Commit changes to GitHub
+    print("💾 Committing changes to GitHub...")
+    # Reset requests for next day
+    print("🧹 Resetting requests for next day...")
+    requests_data["applicants"] = []
+    requests_data["guests"] = []
+    # requests_data["target_date"] = str(target_date + timedelta(days=1)) # Optional
+    save_json(REQUESTS_FILE, requests_data)
+    
+    # Commit changes to GitHub
+    print("💾 Committing changes to GitHub...")
+    try:
+        os.system('git config user.name "GitHub Actions Bot"')
+        os.system('git config user.email "actions@github.com"')
+        # Add requests.json to the commit
+        os.system('git add history.json users.json requests.json visitor_count.json')
+        os.system(f'git commit -m "Auto-update: Parking allocation for {today_str}"')
+        os.system('git push')
+        print("✅ Changes committed to GitHub")
+    except Exception as e:
+        print(f"⚠️ Failed to commit to GitHub: {str(e)}")
+    
     print("🎉 Automation completed!")
 
 if __name__ == "__main__":
