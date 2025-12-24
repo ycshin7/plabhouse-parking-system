@@ -33,7 +33,8 @@ def get_kst_time():
 
 def get_target_date():
     now = get_kst_time()
-    if now.hour < 8:
+    # If running at 08:00~08:59, we consider it "Today's" allocation time.
+    if now.hour < 9:
         target = now.date()
     else:
         target = now.date() + timedelta(days=1)
