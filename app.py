@@ -221,9 +221,7 @@ def save_json(file_path, data):
     # Save to GitHub
     success = github_sync.save_to_github(file_path, data, f"Update {file_path} from Streamlit App")
     
-    if success:
-        st.toast(f"✅ {file_path} 저장 완료 (GitHub)", icon="☁️")
-    else:
+    if not success:
         st.error(f"⚠️ {file_path} GitHub 저장 실패! Secrets의 GITHUB_TOKEN과 GITHUB_REPO를 확인해주세요.")
 
 def get_kst_time():
