@@ -84,33 +84,34 @@ def local_css():
         }
         
         
-        /* Modern Button Design - Compact & Animated */
+        /* Modern Button Design - Large for Main Page */
         div.stButton > button {
             max-width: 280px;
-            width: auto;
-            min-width: 60px;
+            width: 100%;
             margin: 0 auto;
             display: block;
-            border-radius: 12px; /* Less rounded for better text space */
+            border-radius: 24px; /* Back to large rounding */
             background: linear-gradient(135deg, var(--primary-blue) 0%, #1b64da 100%);
             color: white !important;
             border: none !important;
             font-weight: 600;
-            font-size: 0.85rem !important; /* Slightly smaller for better fit */
-            padding: 8px 16px; /* Compact padding */
+            font-size: 0.95rem !important; /* Back to original size */
+            padding: 16px 32px; /* Back to original padding */
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
+            box-shadow: 0 4px 16px rgba(49, 130, 246, 0.25);
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            white-space: nowrap !important; /* Prevent text wrapping */
+            white-space: nowrap !important;
         }
         
-        /* Specialized Small Button (Admin List) */
+        /* Specialized Small Button (ONLY for Admin List Columns) */
         [data-testid="column"] div.stButton > button {
-            padding: 6px 12px;
+            padding: 8px 12px !important;
             font-size: 0.8rem !important;
-            min-width: 45px;
+            min-width: 45px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 8px rgba(49, 130, 246, 0.15) !important;
         }
         
         /* Hover Animation - Scale & Shadow */
