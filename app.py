@@ -291,26 +291,39 @@ if "show_staff_form" not in st.session_state:
 if "show_guest_form" not in st.session_state:
     st.session_state.show_guest_form = False
 
-# Load Data
-users = load_json(USERS_FILE, [])
-history = load_json(HISTORY_FILE, [])
+# Load Data (with Session State Caching)
+if "data_users" not in st.session_state:
+    st.session_state.data_users = load_json(USERS_FILE, [])
+users = st.session_state.data_users
+
+if "data_history" not in st.session_state:
+    st.session_state.data_history = load_json(HISTORY_FILE, [])
+history = st.session_state.data_history
 
 # Load and increment visitor count
-visitor_data = load_json(VISITOR_FILE, {"count": 0, "last_updated": str(datetime.now().date())})
+if "data_visitor" not in st.session_state:
+    st.session_state.data_visitor = load_json(VISITOR_FILE, {"count": 0, "last_updated": str(datetime.now().date())})
+
+visitor_data = st.session_state.data_visitor
+
 if "visitor_session_counted" not in st.session_state:
     visitor_data["count"] = visitor_data.get("count", 0) + 1
     visitor_data["last_updated"] = str(datetime.now().date())
-    save_json(VISITOR_FILE, visitor_data)
+    save_json(VISITOR_FILE, visitor_data) # This will update st.session_state.data_visitor internally if I update save_json too?
+    # Wait, save_json just saves to disk/github. It doesn't update session state ref if I pass the object.
+    # Since visitor_data IS st.session_state.data_visitor (ref), modifying it updates session state. OK.
     st.session_state.visitor_session_counted = True
 
 target_date = get_target_date()
 
-requests_data = load_json(REQUESTS_FILE, {
-    "target_date": str(target_date),
-    "applicants": [],
-    "guests": [],
-    "sante_opt_out": False
-})
+if "data_requests" not in st.session_state:
+    st.session_state.data_requests = load_json(REQUESTS_FILE, {
+        "target_date": str(target_date),
+        "applicants": [],
+        "guests": [],
+        "sante_opt_out": False
+    })
+requests_data = st.session_state.data_requests
 
 # Migration: Handle old 'guest' dict format if exists
 if "guest" in requests_data:
@@ -682,29 +695,40 @@ if st.session_state.page == "main":
         with st.container():
             st.markdown("##### 외부인 주차 신청")
             
-            with st.form("guest_parking_form"):
-                g_researcher_options = [u["name"] for u in users]
-                g_researcher = st.selectbox("담당 연구원", g_researcher_options if g_researcher_options else ["직원 등록 필요"], key="g_res")
-                g_name = st.text_input("방문자 성함/업체명", placeholder="예: 김방문 (ABC상사)")
-                col_c1, col_c2 = st.columns(2)
-                g_car = col_c1.selectbox("차종", ["SEDAN", "SUV/VAN"], key="g_car")
-                g_loc = col_c2.selectbox("희망 주차 위치", ["타워 (기계식)", "관리실 앞 (지상)"], key="g_loc")
-                
-                submit_guest = st.form_submit_button("방문 주차 신청", type="primary", use_container_width=True)
-                
-                if submit_guest:
-                    if not g_name:
-                        st.error("방문자 이름을 입력해주세요.")
-                    else:
-                        new_guest = {
-                            "name": g_name,
-                            "car_type": "SEDAN" if g_car=="SEDAN" else "SUV",
-                            "location": g_loc,
-                            "reason": "방문",
-                            "researcher": g_researcher,
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        requests_data["guests"].append(new_guest)
+            # Use columns for layout
+            g_researcher_options = [u["name"] for u in users]
+            # No st.form! Immediate interaction enabled.
+            
+            g_researcher = st.selectbox("담당 연구원", g_researcher_options if g_researcher_options else ["직원 등록 필요"], key="g_res")
+            g_name = st.text_input("방문자 성함/업체명", placeholder="예: 김방문 (ABC상사)", key="g_name_input")
+            
+            col_c1, col_c2 = st.columns(2)
+            
+            # Car Type Selection triggers rerun (default behavior of selectbox outside form)
+            g_car = col_c1.selectbox("차종", ["SEDAN", "SUV/VAN"], key="g_car_select")
+            
+            # Dynamic Location Options based on Car Type
+            if g_car == "SUV/VAN":
+                # SUV restricted to Admin
+                loc_options = ["관리실 앞 (지상)"] 
+            else:
+                loc_options = ["타워 (기계식)", "관리실 앞 (지상)"]
+            
+            g_loc = col_c2.selectbox("희망 주차 위치", loc_options, key="g_loc_select")
+            
+            if st.button("방문 주차 신청", type="primary", use_container_width=True):
+                if not g_name:
+                    st.error("방문자 이름을 입력해주세요.")
+                else:
+                    new_guest = {
+                        "name": g_name,
+                        "car_type": "SUV" if g_car == "SUV/VAN" else "SEDAN",
+                        "location": "관리실" if "관리실" in g_loc else ("타워" if "타워" in g_loc else "상관없음"),
+                        "reason": "방문",
+                        "researcher": g_researcher,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    requests_data["guests"].append(new_guest)
                         save_json(REQUESTS_FILE, requests_data)
                         st.success(f"{g_name} 방문 주차 신청 완료!")
                         st.session_state.active_tab = None  # Close form after submit
