@@ -1,17 +1,14 @@
 name: Daily Parking Allocation
-
 on:
   schedule:
-    # Runs at 23:01 UTC (08:01 KST next day)
-    # KST = UTC + 9, so 08:01 KST = 23:01 UTC previous day
-    - cron: '1 23 * * 0-4'  # Sunday-Thursday (for Mon-Fri in KST)
-  workflow_dispatch:  # Allow manual trigger
-
+    # 매일 한국 시간 08:01 (UTC 23:01) 실행 (일~목) -> 월~금 아침 작동
+    - cron: '1 23 * * 0-4'
+  workflow_dispatch:  # 수동 실행 허용
 jobs:
   allocate-and-notify:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Allow pushing changes
+      contents: write  # GitHub에 결과 저장을 위해 필수
     
     steps:
     - name: Checkout repository
