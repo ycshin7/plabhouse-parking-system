@@ -87,20 +87,30 @@ def local_css():
         /* Modern Button Design - Compact & Animated */
         div.stButton > button {
             max-width: 280px;
+            width: auto;
+            min-width: 60px;
             margin: 0 auto;
             display: block;
-            border-radius: 24px;
+            border-radius: 12px; /* Less rounded for better text space */
             background: linear-gradient(135deg, var(--primary-blue) 0%, #1b64da 100%);
             color: white !important;
             border: none !important;
             font-weight: 600;
-            font-size: 0.95rem !important;
-            padding: 16px 32px;
+            font-size: 0.85rem !important; /* Slightly smaller for better fit */
+            padding: 8px 16px; /* Compact padding */
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 16px rgba(49, 130, 246, 0.25);
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            white-space: nowrap !important; /* Prevent text wrapping */
+        }
+        
+        /* Specialized Small Button (Admin List) */
+        [data-testid="column"] div.stButton > button {
+            padding: 6px 12px;
+            font-size: 0.8rem !important;
+            min-width: 45px;
         }
         
         /* Hover Animation - Scale & Shadow */
@@ -138,6 +148,7 @@ def local_css():
         div[data-testid="stMetric"] {
             text-align: center;
             transition: transform 0.2s ease;
+            width: 100%;
         }
         
         div[data-testid="stMetric"]:hover {
@@ -146,11 +157,16 @@ def local_css():
         
         div[data-testid="stMetricLabel"] {
             font-size: 0.75rem !important;
-            justify-content: center;
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
         }
         div[data-testid="stMetricValue"] {
-            font-size: 1.2rem !important;
-            justify-content: center;
+            font-size: 1.1rem !important;
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+            font-weight: 700 !important;
         }
 
         /* Inputs & Forms */
@@ -1082,7 +1098,7 @@ else:
         with col_header:
             st.markdown("### 직원 관리")
         with col_excel:
-            if st.button("📥 엑셀", use_container_width=True):
+            if st.button("📥 엑셀 다운", use_container_width=True):
                 # Create DataFrame for export
                 export_data = []
                 for u in users:
@@ -1153,8 +1169,7 @@ else:
                 <div style="flex: 1.5;">차 번호</div>
                 <div style="flex: 1.5;">상세 차종</div>
                 <div style="flex: 2;">마지막 주차일</div>
-                <div style="flex: 0.6;"></div>
-                <div style="flex: 0.6;"></div>
+                <div style="flex: 1.5; text-align: center;">관리</div>
             </div>
             <hr style='margin: 0 0 5px 0; border: 0; border-top: 2px solid #e8e8ed;'>
             """, unsafe_allow_html=True)
@@ -1236,38 +1251,34 @@ else:
                 else:
                     # Display Row - Reduced spacing (padding)
                     # Adjusted column ratios to give more space to buttons
-                    col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1, 1.5, 1.5, 2, 0.6, 0.6])
+                    col1, col2, col3, col4, col5, col_btns = st.columns([2, 1, 1.5, 1.5, 2, 1.5])
                     
                     col1.write(f"**{u['name']}**")
                     col2.write(u['car_type'])
                     col3.write(u.get('car_number', '-'))
                     col4.write(u.get('car_details', '-'))
-                    # Calculate Last Parked Date dynamically from history
+                    
+                    # Calculate Last Parked Date dynamically
                     last_parked_date = "-"
-                    # We iterate through history to find the latest date this user parked
-                    # History is sorted by date usually, but let's be safe
                     user_dates = []
                     for h in history:
-                        # Check if user is in admin or tower list
-                        # History items are strings like "Name (Car) Time"
-                        # We match by checking if user name is at the start
                         for item in h["admin"] + h["tower"]:
                             if item.startswith(u["name"]):
                                 user_dates.append(h["date"])
-                    
                     if user_dates:
                         last_parked_date = max(user_dates)
                     
                     col5.write(last_parked_date)
                     
-                    if col6.button("수정", key=f"edit_btn_{idx}"):
-                        st.session_state[f"editing_user_{idx}"] = True
-                        st.rerun()
-                        
-                    if col7.button("삭제", key=f"del_user_{idx}"):
-                        users.remove(u)
-                        save_json(USERS_FILE, users)
-                        st.rerun()
+                    with col_btns:
+                        btn_c1, btn_c2 = st.columns(2)
+                        if btn_c1.button("수정", key=f"edit_btn_{idx}", use_container_width=True):
+                            st.session_state[f"editing_user_{idx}"] = True
+                            st.rerun()
+                        if btn_c2.button("삭제", key=f"del_btn_{idx}", use_container_width=True):
+                            users.remove(u)
+                            save_json(USERS_FILE, users)
+                            st.rerun()
                     
                     # Reduced margin for separator
                     st.markdown("<hr style='margin: 4px 0; border: 0; border-top: 1px solid #e8e8ed;'>", unsafe_allow_html=True)
