@@ -25,7 +25,7 @@ def local_css():
     st.markdown("""
     <style>
         /* Global Font & Colors - FinTech Blue Style */
-        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/TmonMonsori.woff');
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         :root {
@@ -55,9 +55,9 @@ def local_css():
             color: var(--text-dark);
         }
         
-        /* Headers - Tmon Monsori for Sharp, Modern Title */
+        /* Headers - Black Han Sans for Ultra-Bold Modern Title */
         h1 {
-            font-family: 'TmonMonsori', sans-serif !important;
+            font-family: 'Black Han Sans', sans-serif !important;
             color: var(--primary-blue) !important;
             font-size: 3.5rem !important; /* Larger for impact */
             text-align: center !important;
