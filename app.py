@@ -107,11 +107,27 @@ def local_css():
         
         /* Specialized Small Button (ONLY for Admin List Columns) */
         [data-testid="column"] div.stButton > button {
-            padding: 8px 12px !important;
-            font-size: 0.8rem !important;
+            padding: 2px 8px !important; /* Extremely thin vertical padding */
+            font-size: 0.75rem !important;
             min-width: 45px !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 8px rgba(49, 130, 246, 0.15) !important;
+            height: 26px !important; /* Fixed compact height */
+            line-height: normal !important;
+            border-radius: 6px !important;
+            box-shadow: none !important; /* Remove shadow for cleaner look in list */
+            margin: 0 !important;
+        }
+        
+        /* Force center alignment for components inside columns */
+        [data-testid="column"] {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        [data-testid="column"] .stMarkdown, [data-testid="column"] .stMetricValue {
+            text-align: center !important;
+            width: 100%;
         }
         
         /* Hover Animation - Scale & Shadow */
@@ -1165,12 +1181,12 @@ else:
             # Table Header
             st.markdown("""
             <div style="display: flex; font-weight: bold; color: #6b7684; margin-bottom: 8px; padding: 0 10px;">
-                <div style="flex: 2;">이름</div>
-                <div style="flex: 1;">차종</div>
-                <div style="flex: 1.5;">차 번호</div>
-                <div style="flex: 1.5;">상세 차종</div>
-                <div style="flex: 2;">마지막 주차일</div>
-                <div style="flex: 1.5; text-align: center;">관리</div>
+                <div style="flex: 1.5;">이름</div>
+                <div style="flex: 0.8;">차종</div>
+                <div style="flex: 1.2;">차 번호</div>
+                <div style="flex: 1.2;">상세 차종</div>
+                <div style="flex: 1.5;">마지막 주차일</div>
+                <div style="flex: 1.8; text-align: center;">관리</div>
             </div>
             <hr style='margin: 0 0 5px 0; border: 0; border-top: 2px solid #e8e8ed;'>
             """, unsafe_allow_html=True)
@@ -1250,16 +1266,15 @@ else:
                             st.session_state[f"editing_user_{idx}"] = False
                             st.rerun()
                 else:
-                    # Display Row - Reduced spacing (padding)
-                    # Adjusted column ratios to give more space to buttons
-                    col1, col2, col3, col4, col5, col_btns = st.columns([2, 1, 1.5, 1.5, 2, 1.5])
+                    # Display Row - Balanced ratios for better centering
+                    col1, col2, col3, col4, col5, col_btns = st.columns([1.5, 0.8, 1.2, 1.2, 1.5, 1.8], gap="small")
                     
                     col1.write(f"**{u['name']}**")
                     col2.write(u['car_type'])
                     col3.write(u.get('car_number', '-'))
                     col4.write(u.get('car_details', '-'))
                     
-                    # Calculate Last Parked Date dynamically
+                    # Calculate Last Parked Date
                     last_parked_date = "-"
                     user_dates = []
                     for h in history:
@@ -1272,7 +1287,7 @@ else:
                     col5.write(last_parked_date)
                     
                     with col_btns:
-                        btn_c1, btn_c2 = st.columns(2)
+                        btn_c1, btn_c2 = st.columns(2, gap="small")
                         if btn_c1.button("수정", key=f"edit_btn_{idx}", use_container_width=True):
                             st.session_state[f"editing_user_{idx}"] = True
                             st.rerun()
