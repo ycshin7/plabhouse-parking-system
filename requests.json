@@ -1,6 +1,15 @@
 {
     "target_date": "2025-12-25",
     "applicants": [],
-    "guests": [],
+    "guests": [
+        {
+            "name": "ㅇㅇ",
+            "car_type": "SUV",
+            "location": "타워 (기계식)",
+            "reason": "방문",
+            "researcher": "뚜비",
+            "timestamp": "2025-12-24T02:32:23.980314"
+        }
+    ],
     "sante_opt_out": false
 }
