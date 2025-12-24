@@ -729,9 +729,9 @@ if st.session_state.page == "main":
                         "timestamp": datetime.now().isoformat()
                     }
                     requests_data["guests"].append(new_guest)
-                        save_json(REQUESTS_FILE, requests_data)
-                        st.success(f"{g_name} 방문 주차 신청 완료!")
-                        st.session_state.active_tab = None  # Close form after submit
+                    save_json(REQUESTS_FILE, requests_data)
+                    st.success(f"{g_name} 방문 주차 신청 완료!")
+                    st.session_state.active_tab = None  # Close form after submit
 
     # 3. SANTE ALERT TOGGLE
     elif st.session_state.active_tab == "sante":
