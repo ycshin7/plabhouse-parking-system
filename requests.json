@@ -25,6 +25,14 @@
             "reason": "방문",
             "researcher": "뚜비",
             "timestamp": "2025-12-24T22:22:03.436291"
+        },
+        {
+            "name": "면접4",
+            "car_type": "SEDAN",
+            "location": "관리실",
+            "reason": "방문",
+            "researcher": "뚜비",
+            "timestamp": "2025-12-24T22:22:26.475126"
         }
     ],
     "sante_opt_out": false
