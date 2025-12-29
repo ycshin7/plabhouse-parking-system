@@ -220,6 +220,22 @@ def local_css():
             }
         }
 
+        /* Tabs & Toggles - Fix for mobile visibility */
+        div[data-testid="stTabs"] button {
+            color: var(--text-gray) !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+        }
+        div[data-testid="stTabs"] button[aria-selected="true"] {
+            color: var(--primary-blue) !important;
+        }
+        
+        /* Force label visibility for Toggles and Widgets */
+        div[data-testid="stWidgetLabel"] p, label p {
+            color: var(--text-dark) !important;
+            font-weight: 500 !important;
+        }
+
         /* Inputs & Forms */
         .stTextInput > div > div, .stSelectbox > div > div {
             border-radius: 12px;
