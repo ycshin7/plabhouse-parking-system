@@ -120,8 +120,8 @@ def local_css():
             white-space: nowrap !important;
         }
 
-        /* Force ALL text inside buttons to be white */
-        div.stButton > button * {
+        /* Force ALL text inside buttons to be white - Targeted Fix */
+        div.stButton > button p, div.stButton > button div p, div.stButton > button span {
             color: white !important;
         }
         
