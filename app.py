@@ -213,6 +213,7 @@ def local_css():
     """, unsafe_allow_html=True)
 
 # --- Helper Functions ---
+@st.cache_data(ttl=600) # Cache for 10 minutes to speed up loads
 def load_json(file_path, default_data):
     # Try to check if GitHub is configured
     if not github_sync.get_github_repo():
@@ -224,10 +225,7 @@ def load_json(file_path, default_data):
         if gh_data is not None:
             return gh_data
         else:
-            # Configured BUT returned None -> LOAD FAILURE (Network or Auth or Missing File)
-            # If it's a missing file, it might be fine, but if it's network, it's bad.
             # github_sync.load_from_github returns None on error.
-            # Ideally we want to panic here if it's a critical file like history.json
             if file_path in ["history.json", "users.json"]:
                  st.session_state["github_load_failed"] = True
                  st.session_state[f"load_error_{file_path}"] = "GitHub에서 데이터를 불러오지 못했습니다."
@@ -246,6 +244,9 @@ def save_json(file_path, data):
     if st.session_state.get("github_load_failed", False):
         st.warning(f"🚫 데이터 로드 실패로 인해 '{file_path}' 저장이 차단되었습니다. (데이터 덮어쓰기 방지)")
         return
+
+    # Clear cache since data changed
+    st.cache_data.clear()
 
     # Save to local
     with open(file_path, "w", encoding="utf-8") as f:
@@ -338,11 +339,15 @@ if "data_visitor" not in st.session_state:
 visitor_data = st.session_state.data_visitor
 
 if "visitor_session_counted" not in st.session_state:
+    # Only increment count if it's a new session, but do NOT save synchronously to GitHub every time
+    # This reduces initial load delay significantly.
     visitor_data["count"] = visitor_data.get("count", 0) + 1
     visitor_data["last_updated"] = str(datetime.now().date())
-    save_json(VISITOR_FILE, visitor_data) # This will update st.session_state.data_visitor internally if I update save_json too?
-    # Wait, save_json just saves to disk/github. It doesn't update session state ref if I pass the object.
-    # Since visitor_data IS st.session_state.data_visitor (ref), modifying it updates session state. OK.
+    
+    # Still write to local for immediate feedback
+    with open(VISITOR_FILE, "w", encoding="utf-8") as f:
+        json.dump(visitor_data, f, ensure_ascii=False, indent=4)
+    
     st.session_state.visitor_session_counted = True
 
 target_date = get_target_date()
@@ -382,7 +387,10 @@ today_str = str(now_kst.date())
 # And check if allocation for today doesn't exist yet
 history_today_check = next((h for h in history if h["date"] == today_str), None)
 
-if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check:
+# CRITICAL FIX: Skip auto-allocation on weekends (Saturday=5, Sunday=6)
+is_weekend = now_kst.weekday() in [5, 6]
+
+if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and not is_weekend:
     # Perform Allocation Logic (Same as Admin Button)
     st.toast("🤖 08:01 자동 배정을 시작합니다...")
     
@@ -1491,11 +1499,42 @@ else:
                                 
                                 # Handle form submission outside the columns
                                 if submit_save:
+                                    # Detect new additions for Slack notification
+                                    # Get currently assigned names for today after 08:01
+                                    today_str_current = str(get_kst_time().date())
+                                    is_today = h["date"] == today_str_current
+                                    
+                                    newly_added = []
+                                    if is_today:
+                                        # Compare old vs new
+                                        # old is h["admin/tower"]
+                                        # new is edit_admin/edit_tower (which only has staff_options format)
+                                        # Convert h items to base name format for comparison
+                                        def get_base(s): return s.split(" (")[0]
+                                        old_all = set([get_base(x) for x in h["admin"] + h["tower"]])
+                                        new_all = set([get_base(x) for x in edit_admin + edit_tower])
+                                        
+                                        added_names = new_all - old_all
+                                        for name in added_names:
+                                            newly_added.append(name)
+                                            
                                     # Save with "Name (CarType) 수동입력" format for edited entries
                                     h["admin"] = [f"{item} 수동입력" for item in edit_admin]
                                     h["tower"] = [f"{item} 수동입력" for item in edit_tower]
                                     h["wait"] = [f"{item} 수동입력" for item in edit_wait]
                                     save_json(HISTORY_FILE, history)
+                                    
+                                    # Send Slack Notification if newly added to today's list
+                                    if is_today and newly_added:
+                                        weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+                                        today_now = get_kst_time()
+                                        wday = weekday_names[today_now.weekday()]
+                                        
+                                        names_str = ", ".join(newly_added)
+                                        added_msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 주차 배정(관리실/타워)에 추가되었습니다.\n\n앱에서 최신 배정 현황을 확인해 주세요!"
+                                        send_slack_message(added_msg)
+                                        st.info("💡 당일 추가 배정 내역이 슬랙으로 전송되었습니다.")
+
                                     st.session_state[f"editing_hist_{h['date']}"] = False
                                     st.success("저장되었습니다!")
                                     st.rerun()
