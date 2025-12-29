@@ -122,15 +122,23 @@ def main():
             u_time = ts.strftime("%H:%M")
         
         user_obj = next((u for u in users if u["name"] == u_name), None)
+        
+        # FALLBACK: If user not found (e.g., '피르'), treat as new applicant with high priority
         if user_obj:
-            candidates.append({
-                "type": "staff",
-                "name": u_name,
-                "car_type": user_obj["car_type"],
-                "last_parked": user_obj.get("last_parked_date", ""),
-                "timestamp": ts,
-                "display_name": f"{u_name} ({user_obj['car_type']}) {u_time}"
-            })
+            c_type = user_obj["car_type"]
+            l_parked = user_obj.get("last_parked_date", "")
+        else:
+            c_type = "SEDAN" # Default for unregistered
+            l_parked = "1970-01-01" # High priority (never parked)
+            
+        candidates.append({
+            "type": "staff",
+            "name": u_name,
+            "car_type": c_type,
+            "last_parked": l_parked,
+            "timestamp": ts,
+            "display_name": f"{u_name} ({c_type}) {u_time}"
+        })
     
     # Sort by last_parked, then timestamp
     candidates.sort(key=lambda x: (
