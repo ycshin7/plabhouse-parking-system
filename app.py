@@ -1,3 +1,4 @@
+```python
 # -*- coding: utf-8 -*-
 import streamlit as st
 import json
@@ -7,6 +8,7 @@ import pytz # Required for timezone handling
 import os
 import textwrap
 import github_sync # GitHub Persistence Module
+import copy # Required for safe caching
 
 # --- Constants ---
 # --- Constants ---
@@ -223,7 +225,9 @@ def load_json(file_path, default_data):
         # Configured, try to load
         gh_data = github_sync.load_from_github(file_path, default_data)
         if gh_data is not None:
-            return gh_data
+            # Return a deepcopy to prevent "Cache Mutation"
+            # (modifying the returned object should NOT change the global cache)
+            return copy.deepcopy(gh_data)
         else:
             # github_sync.load_from_github returns None on error.
             if file_path in ["history.json", "users.json"]:
@@ -232,12 +236,13 @@ def load_json(file_path, default_data):
 
     # Fallback to local
     if not os.path.exists(file_path):
-        return default_data
+        return copy.deepcopy(default_data)
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            return copy.deepcopy(data)
     except json.JSONDecodeError:
-        return default_data
+        return copy.deepcopy(default_data)
 
 def save_json(file_path, data):
     # Critical Safety Check
