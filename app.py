@@ -119,6 +119,11 @@ def local_css():
             overflow: hidden;
             white-space: nowrap !important;
         }
+
+        /* Force ALL text inside buttons to be white */
+        div.stButton > button * {
+            color: white !important;
+        }
         
         /* Specialized Small Button (ONLY for Admin List Columns) */
         [data-testid="column"] div.stButton > button {
