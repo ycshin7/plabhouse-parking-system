@@ -223,16 +223,16 @@ def local_css():
         /* Tabs & Toggles - Fix for mobile visibility */
         div[data-testid="stTabs"] button {
             color: var(--text-gray) !important;
-            font-size: 0.9rem !important;
+            font-size: 0.9em !important;
             font-weight: 600 !important;
         }
         div[data-testid="stTabs"] button[aria-selected="true"] {
             color: var(--primary-blue) !important;
         }
         
-        /* Force label visibility for Toggles and Widgets */
-        div[data-testid="stWidgetLabel"] p, label p {
-            color: var(--text-dark) !important;
+        /* Force label visibility for Toggles and Widgets (Deep Dark for Contrast) */
+        div[data-testid="stWidgetLabel"] p, label p, .stMarkdown p {
+            color: #191f28 !important; /* Force Deep Dark */
             font-weight: 500 !important;
         }
 
@@ -445,7 +445,7 @@ is_weekend = now_kst.weekday() in [5, 6]
 
 if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and not is_weekend:
     # Perform Allocation Logic (Same as Admin Button)
-    st.toast("🤖 08:01 자동 배정을 시작합니다...")
+    # Silently run without toast
     
     admin_slots = 1
     tower_slots = 2
@@ -466,15 +466,23 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
             ts = datetime.fromisoformat(app["timestamp"])
         
         user_obj = next((u for u in users if u["name"] == u_name), None)
+        
+        # FALLBACK: If user not found (e.g., '피르'), treat as new applicant with high priority
         if user_obj:
-            candidates.append({
-                "type": "staff",
-                "name": u_name,
-                "car_type": user_obj["car_type"],
-                "last_parked": user_obj["last_parked_date"],
-                "timestamp": ts,
-                "display_name": f"{u_name} ({user_obj['car_type']}) {u_time}"
-            })
+            c_type = user_obj["car_type"]
+            l_parked = user_obj.get("last_parked_date", "")
+        else:
+            c_type = "SEDAN" # Default for unregistered
+            l_parked = "1970-01-01" # High priority (never parked)
+            
+        candidates.append({
+            "type": "staff",
+            "name": u_name,
+            "car_type": c_type,
+            "last_parked": l_parked,
+            "timestamp": ts,
+            "display_name": f"{u_name} ({c_type}) {u_time}"
+        })
     
     # Guests
     for g in requests_data["guests"]:
