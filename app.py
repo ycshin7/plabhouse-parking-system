@@ -63,9 +63,20 @@ def local_css():
             font-size: 3.0rem !important;
             text-align: center !important;
             margin-bottom: 0.8rem !important;
-            letter-spacing: -0.05em !important; /* Tight spacing for modern feel */
+            letter-spacing: -0.05em !important;
             text-shadow: 0 0 0 transparent;
         }
+        
+        /* Subtitle class for date/instruction text */
+        .subtitle {
+            color: var(--text-gray) !important;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: -1rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
         h2, h3 {
             font-family: 'Pretendard', sans-serif !important;
             font-weight: 700 !important;
@@ -185,6 +196,28 @@ def local_css():
             justify-content: center !important;
             width: 100% !important;
             font-weight: 700 !important;
+            color: var(--text-dark) !important; /* Force dark color */
+        }
+
+        /* Responsive Design for Mobile */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.0rem !important;
+                margin-top: 1rem !important;
+            }
+            .subtitle {
+                font-size: 0.9rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+            .block-container {
+                padding-top: 1.5rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            div.stButton > button {
+                padding: 12px 24px !important;
+                font-size: 0.9rem !important;
+            }
         }
 
         /* Inputs & Forms */
