@@ -1505,18 +1505,18 @@ else:
                                     is_today = h["date"] == today_str_current
                                     
                                     newly_added = []
+                                    newly_removed = []
                                     if is_today:
                                         # Compare old vs new
-                                        # old is h["admin/tower"]
-                                        # new is edit_admin/edit_tower (which only has staff_options format)
-                                        # Convert h items to base name format for comparison
                                         def get_base(s): return s.split(" (")[0]
                                         old_all = set([get_base(x) for x in h["admin"] + h["tower"]])
                                         new_all = set([get_base(x) for x in edit_admin + edit_tower])
                                         
                                         added_names = new_all - old_all
-                                        for name in added_names:
-                                            newly_added.append(name)
+                                        removed_names = old_all - new_all
+                                        
+                                        newly_added = list(added_names)
+                                        newly_removed = list(removed_names)
                                             
                                     # Save with "Name (CarType) 수동입력" format for edited entries
                                     h["admin"] = [f"{item} 수동입력" for item in edit_admin]
@@ -1524,16 +1524,24 @@ else:
                                     h["wait"] = [f"{item} 수동입력" for item in edit_wait]
                                     save_json(HISTORY_FILE, history)
                                     
-                                    # Send Slack Notification if newly added to today's list
-                                    if is_today and newly_added:
+                                    # Send Slack Notification if changed in today's list
+                                    if is_today:
                                         weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
                                         today_now = get_kst_time()
                                         wday = weekday_names[today_now.weekday()]
                                         
-                                        names_str = ", ".join(newly_added)
-                                        added_msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 주차 배정(관리실/타워)에 추가되었습니다.\n\n앱에서 최신 배정 현황을 확인해 주세요!"
-                                        send_slack_message(added_msg)
-                                        st.info("💡 당일 추가 배정 내역이 슬랙으로 전송되었습니다.")
+                                        if newly_added:
+                                            names_str = ", ".join(newly_added)
+                                            added_msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 주차 배정(관리실/타워)에 추가되었습니다."
+                                            send_slack_message(added_msg)
+                                        
+                                        if newly_removed:
+                                            names_str = ", ".join(newly_removed)
+                                            removed_msg = f"🚫 **{today_str_current} ({wday}) 주차 배정 취소 알림**\n\n⚠️ **{names_str}**님의 주차 배정(관리실/타워)이 취소/삭제되었습니다.\n\n빈 자리가 생겼으니 필요하신 분은 앱에서 확인해 주세요!"
+                                            send_slack_message(removed_msg)
+
+                                        if newly_added or newly_removed:
+                                            st.info("💡 당일 배정 변경 내역이 슬랙으로 전송되었습니다.")
 
                                     st.session_state[f"editing_hist_{h['date']}"] = False
                                     st.success("저장되었습니다!")
