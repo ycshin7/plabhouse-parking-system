@@ -1,11 +1,6 @@
 {
-    "target_date": "2025-12-30",
-    "applicants": [
-        {
-            "name": "피르",
-            "timestamp": "2025-12-29T09:02:26.916248"
-        }
-    ],
+    "target_date": "2025-12-31",
+    "applicants": [],
     "guests": [],
     "sante_opt_out": false
 }
