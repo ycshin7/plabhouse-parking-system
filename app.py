@@ -57,6 +57,15 @@ def local_css():
         }
         
         /* Headers - Gmarket Sans Revised for Stylish look */
+        /* Headers - Force Dark Color for ALL headers */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Pretendard', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.02em !important;
+            color: #191f28 !important; /* Critical Fix for Mobile Dark Mode */
+        }
+        
+        /* Specific override for H1 to keep Blue */
         h1 {
             font-family: 'GmarketSansBold', sans-serif !important;
             color: var(--primary-blue) !important;
@@ -66,7 +75,7 @@ def local_css():
             letter-spacing: -0.05em !important;
             text-shadow: 0 0 0 transparent;
         }
-        
+
         /* Subtitle class for date/instruction text */
         .subtitle {
             color: var(--text-gray) !important;
@@ -75,12 +84,6 @@ def local_css():
             margin-top: -1rem;
             margin-bottom: 2rem;
             font-weight: 500;
-        }
-
-        h2, h3 {
-            font-family: 'Pretendard', sans-serif !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.02em !important;
         }
         
         /* Hide Streamlit branding */
@@ -231,7 +234,7 @@ def local_css():
         }
         
         /* Force label visibility for Toggles and Widgets (Deep Dark for Contrast) */
-        div[data-testid="stWidgetLabel"] p, label p, .stMarkdown p {
+        div[data-testid="stWidgetLabel"] p, label p, .stMarkdown p, .stMarkdown li {
             color: #191f28 !important; /* Force Deep Dark */
             font-weight: 500 !important;
         }
