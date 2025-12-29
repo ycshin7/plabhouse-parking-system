@@ -79,6 +79,15 @@ def main():
     target_date = get_target_date()
     today_str = str(target_date)
     
+    # CRITICAL FIX: Weekend accumulation for Monday
+    # If today is Saturday or Sunday, do NOT run auto-allocation.
+    # Friday's script already allocated for Friday.
+    # We want Friday afternoon, Saturday, and Sunday applications to accumulate for Monday.
+    now_kst = get_kst_time()
+    if now_kst.weekday() in [5, 6]: # 5 is Saturday, 6 is Sunday
+        print(f"😴 It's {now_kst.strftime('%A')}. Skipping auto-allocation to allow Monday requests to accumulate.")
+        return
+
     print(f"📅 Target date: {today_str}")
     
     # Check if already allocated
