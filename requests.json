@@ -2,5 +2,5 @@
     "target_date": "2025-12-31",
     "applicants": [],
     "guests": [],
-    "sante_opt_out": false
+    "sante_opt_out": true
 }
