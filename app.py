@@ -324,9 +324,9 @@ def get_kst_time():
 
 def get_target_date():
     now = get_kst_time()
-    # If it's before 8 AM, target is today.
-    # If it's after 8 AM, target is tomorrow.
-    if now.hour < 8:
+    # If it's before 9 AM, target is today.
+    # If it's after 9 AM, target is tomorrow.
+    if now.hour < 9:
         target = now.date()
     else:
         target = now.date() + timedelta(days=1)
