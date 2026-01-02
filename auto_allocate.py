@@ -126,7 +126,8 @@ def main():
         # FALLBACK: If user not found (e.g., '피르'), treat as new applicant with high priority
         if user_obj:
             c_type = user_obj["car_type"]
-            l_parked = user_obj.get("last_parked_date", "")
+            # CRITICAL: Convert null/None to empty string for consistent sorting
+            l_parked = user_obj.get("last_parked_date") or ""
         else:
             c_type = "SEDAN" # Default for unregistered
             l_parked = "1970-01-01" # High priority (never parked)
@@ -139,31 +140,93 @@ def main():
             "timestamp": ts,
             "display_name": f"{u_name} ({c_type}) {u_time}"
         })
+
+    # Collect guest candidates
+    for g in requests_data.get("guests", []):
+        if "timestamp" in g:
+            ts = datetime.fromisoformat(g["timestamp"])
+            time_str = ts.strftime("%H:%M")
+        else:
+            ts = datetime.min
+            time_str = "00:00"
+        
+        candidates.append({
+            "type": "guest",
+            "name": g["name"],
+            "car_type": g["car_type"],
+            "location": g["location"],
+            "timestamp": ts,
+            "display_name": f"{g['name']} ({g['car_type']}) {time_str}"
+        })
     
-    # Sort by last_parked, then timestamp
-    candidates.sort(key=lambda x: (
+    
+    # Sort
+    staff_c = [c for c in candidates if c["type"] == "staff"]
+    guest_c = [c for c in candidates if c["type"] == "guest"]
+    
+    # Sort staff by last_parked (empty/null is priority) then timestamp
+    staff_c.sort(key=lambda x: (
         datetime.fromisoformat(x["last_parked"]) if x["last_parked"] else datetime.min,
         x["timestamp"]
     ))
+    # Sort guests by timestamp
+    guest_c.sort(key=lambda x: x["timestamp"])
     
     # Allocate
     result_admin = []
     result_tower = []
     result_wait = []
     
-    for c in candidates:
-        if c["car_type"] == "SUV":
-            if len(result_admin) < admin_slots:
-                result_admin.append(c["display_name"])
-            else:
-                result_wait.append(c["display_name"])
+    # 1. GUESTS FIRST (High Priority)
+    for g in guest_c:
+        assigned = False
+        # Simplified logic: Guests usually don't have location preference in automation script? 
+        # Check if 'location' exists in g (it should if copied from app.py logic)
+        loc = g.get("location", ["상관없음"]) # Default to any
+        
+        if "관리실" in loc:
+            if admin_slots > 0:
+                result_admin.append(g["display_name"])
+                admin_slots -= 1
+                assigned = True
+        elif "타워" in loc:
+            if tower_slots > 0:
+                result_tower.append(g["display_name"])
+                tower_slots -= 1
+                assigned = True
+        else: # "상관없음" or default
+            if tower_slots > 0:
+                result_tower.append(g["display_name"])
+                tower_slots -= 1
+                assigned = True
+            elif admin_slots > 0:
+                result_admin.append(g["display_name"])
+                admin_slots -= 1
+                assigned = True
+        
+        if not assigned:
+            result_wait.append(g["display_name"])
+
+    # 2. STAFF SECOND
+    for s in staff_c:
+        assigned = False
+        if s["car_type"] == "SUV":
+            if admin_slots > 0:
+                result_admin.append(s["display_name"])
+                admin_slots -= 1
+                assigned = True
         else:  # SEDAN
-            if len(result_tower) < tower_slots:
-                result_tower.append(c["display_name"])
-            elif len(result_admin) < admin_slots:
-                result_admin.append(c["display_name"])
-            else:
-                result_wait.append(c["display_name"])
+            if tower_slots > 0:
+                result_tower.append(s["display_name"])
+                tower_slots -= 1
+                assigned = True
+            elif admin_slots > 0:
+                result_admin.append(s["display_name"])
+                admin_slots -= 1
+                assigned = True
+        
+        if not assigned:
+            result_wait.append(s["display_name"])
     
     # Update last_parked_date for allocated staff
     for name in result_admin + result_tower:
