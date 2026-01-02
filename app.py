@@ -478,7 +478,8 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
         # FALLBACK: If user not found (e.g., '피르'), treat as new applicant with high priority
         if user_obj:
             c_type = user_obj["car_type"]
-            l_parked = user_obj.get("last_parked_date", "")
+            # CRITICAL: Convert null/None to empty string for consistent sorting
+            l_parked = user_obj.get("last_parked_date") or ""
         else:
             c_type = "SEDAN" # Default for unregistered
             l_parked = "1970-01-01" # High priority (never parked)
@@ -1592,6 +1593,38 @@ else:
                                     h["tower"] = [f"{item} 수동입력" for item in edit_tower]
                                     h["wait"] = [f"{item} 수동입력" for item in edit_wait]
                                     save_json(HISTORY_FILE, history)
+
+                                    # CRITICAL FIX: Update users.json last_parked_date for manually added users
+                                    # This ensures manual edits affect future priority
+                                    users_updated = False
+                                    all_assigned_manual = edit_admin + edit_tower
+                                    
+                                    for item_str in all_assigned_manual:
+                                        # item_str format example: "피치 (SUV)" or just "피치"
+                                        base_name = item_str.split(" (")[0].strip()
+                                        
+                                        # Find user and update date
+                                        for u in users:
+                                            if u["name"] == base_name:
+                                                # Only update if this date is newer than existing
+                                                current_date = u.get("last_parked_date")
+                                                edited_date = h["date"]
+                                                
+                                                needs_update = False
+                                                if not current_date:
+                                                    needs_update = True
+                                                else:
+                                                    # String comparison is usually fine for YYYY-MM-DD, but safer to be sure
+                                                    if edited_date > current_date:
+                                                        needs_update = True
+                                                
+                                                if needs_update:
+                                                    u["last_parked_date"] = edited_date
+                                                    users_updated = True
+                                                break
+                                    
+                                    if users_updated:
+                                        save_json(USERS_FILE, users)
                                     
                                     # Send Slack Notification if changed in today's list
                                     if is_today:
