@@ -1632,17 +1632,38 @@ else:
                                         today_now = get_kst_time()
                                         wday = weekday_names[today_now.weekday()]
                                         
-                                        if newly_added:
-                                            names_str = ", ".join(newly_added)
-                                            added_msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 주차 배정(관리실/타워)에 추가되었습니다."
-                                            send_slack_message(added_msg)
+                                        # Calculate added specifically for each section
+                                        def get_base(s): return s.split(" (")[0]
+                                        
+                                        prev_admin = set([get_base(x) for x in h["admin"]])
+                                        prev_tower = set([get_base(x) for x in h["tower"]])
+                                        
+                                        curr_admin = set([get_base(x) for x in edit_admin])
+                                        curr_tower = set([get_base(x) for x in edit_tower])
+                                        
+                                        added_admin = curr_admin - prev_admin
+                                        added_tower = curr_tower - prev_tower
+                                        
+                                        # Handle Admin Additions
+                                        if added_admin:
+                                            names_str = ", ".join(list(added_admin))
+                                            # "관리실" specific message
+                                            msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 **관리실** 주차 배정에 추가되었습니다."
+                                            send_slack_message(msg)
+
+                                        # Handle Tower Additions
+                                        if added_tower:
+                                            names_str = ", ".join(list(added_tower))
+                                            # "타워" specific message
+                                            msg = f"📣 **{today_str_current} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 **타워** 주차 배정에 추가되었습니다."
+                                            send_slack_message(msg)
                                         
                                         if newly_removed:
                                             names_str = ", ".join(newly_removed)
                                             removed_msg = f"🚫 **{today_str_current} ({wday}) 주차 배정 취소 알림**\n\n⚠️ **{names_str}**님의 주차 배정(관리실/타워)이 취소/삭제되었습니다.\n\n빈 자리가 생겼으니 필요하신 분은 앱에서 확인해 주세요!"
                                             send_slack_message(removed_msg)
 
-                                        if newly_added or newly_removed:
+                                        if added_admin or added_tower or newly_removed:
                                             st.info("💡 당일 배정 변경 내역이 슬랙으로 전송되었습니다.")
 
                                     st.session_state[f"editing_hist_{h['date']}"] = False
