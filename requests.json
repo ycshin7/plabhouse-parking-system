@@ -1,6 +1,11 @@
 {
     "target_date": "2026-01-05",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "뚜비",
+            "timestamp": "2026-01-04T01:06:36.442097"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
