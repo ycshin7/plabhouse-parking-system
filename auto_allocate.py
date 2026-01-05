@@ -83,10 +83,36 @@ def main():
     # If today is Saturday or Sunday, do NOT run auto-allocation.
     # Friday's script already allocated for Friday.
     # We want Friday afternoon, Saturday, and Sunday applications to accumulate for Monday.
+    today_str = str(target_date)
+    
+    # CRITICAL FIX: Weekend accumulation for Monday
+    # If today is Saturday or Sunday, do NOT run auto-allocation.
+    # Friday's script already allocated for Friday.
+    # We want Friday afternoon, Saturday, and Sunday applications to accumulate for Monday.
     now_kst = get_kst_time()
     if now_kst.weekday() in [5, 6]: # 5 is Saturday, 6 is Sunday
         print(f"😴 It's {now_kst.strftime('%A')}. Skipping auto-allocation to allow Monday requests to accumulate.")
         return
+
+    # PRECISION TIMING: Wait until 08:01 AM KST if running early
+    # GitHub Actions runs early (e.g. 07:30-07:50), so we wait for exact timing.
+    target_hour = 8
+    target_minute = 1
+    
+    if now_kst.hour < target_hour or (now_kst.hour == target_hour and now_kst.minute < target_minute):
+        import time
+        target_time = now_kst.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
+        wait_seconds = (target_time - now_kst).total_seconds()
+        
+        if wait_seconds > 0:
+            print(f"⏳ Running early. Waiting {wait_seconds:.0f} seconds until {target_hour}:{target_minute:02d} KST...")
+            # Print periodically to keep CI alive and show progress
+            while wait_seconds > 60:
+                time.sleep(60)
+                wait_seconds -= 60
+                print(f"   ... {wait_seconds / 60:.0f} minutes remaining")
+            time.sleep(wait_seconds)
+            print("⏰ It's time! Starting allocation.")
 
     print(f"📅 Target date: {today_str}")
     
