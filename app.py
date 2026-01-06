@@ -1650,6 +1650,12 @@ else:
                                         added_tower = curr_tower - prev_tower
                                         
                                         # Handle Admin Additions
+                                        # DEBUG LOGGING (VISIBLE TO USER)
+                                        st.error(f"DEBUG INFO: Today={is_today}")
+                                        st.error(f"Prev Admin: {prev_admin}")
+                                        st.error(f"Curr Admin: {curr_admin}")
+                                        st.error(f"Added: {added_admin}")
+                                        
                                         if added_admin:
                                             names_str = ", ".join(list(added_admin))
                                             # "관리실" specific message
