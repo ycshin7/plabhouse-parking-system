@@ -1588,6 +1588,10 @@ else:
                                         newly_added = list(added_names)
                                         newly_removed = list(removed_names)
                                             
+                                    # 수정 전 상태 캡처 (Deep Copy for Diff)
+                                    old_admin_list = copy.deepcopy(h["admin"])
+                                    old_tower_list = copy.deepcopy(h["tower"])
+
                                     # Save with "Name (CarType) 수동입력" format for edited entries
                                     h["admin"] = [f"{item} 수동입력" for item in edit_admin]
                                     h["tower"] = [f"{item} 수동입력" for item in edit_tower]
@@ -1635,8 +1639,9 @@ else:
                                         # Calculate added specifically for each section
                                         def get_base(s): return s.split(" (")[0]
                                         
-                                        prev_admin = set([get_base(x) for x in h["admin"]])
-                                        prev_tower = set([get_base(x) for x in h["tower"]])
+                                        # Use caught old lists for comparison
+                                        prev_admin = set([get_base(x) for x in old_admin_list])
+                                        prev_tower = set([get_base(x) for x in old_tower_list])
                                         
                                         curr_admin = set([get_base(x) for x in edit_admin])
                                         curr_tower = set([get_base(x) for x in edit_tower])
