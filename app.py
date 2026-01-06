@@ -1631,6 +1631,11 @@ else:
                                         save_json(USERS_FILE, users)
                                     
                                     # Send Slack Notification if changed in today's list
+                                    # MOVED DEBUG LOGGING (VISIBLE TO USER)
+                                    st.error(f"DEBUG INFO: Entry Date={h['date']}")
+                                    st.error(f"DEBUG INFO: Today System Date={today_str_current}")
+                                    st.error(f"DEBUG INFO: is_today={is_today}")
+
                                     if is_today:
                                         weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
                                         today_now = get_kst_time()
