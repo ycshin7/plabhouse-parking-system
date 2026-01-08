@@ -444,14 +444,15 @@ if "guests" not in requests_data:
 now_kst = get_kst_time()
 today_str = str(now_kst.date())
 
-# Check if it's time to auto-allocate (e.g., between 08:01 and 08:05)
+# Check if it's time to auto-allocate (08:01 to 08:05)
 # And check if allocation for today doesn't exist yet
 history_today_check = next((h for h in history if h["date"] == today_str), None)
 
 # CRITICAL FIX: Skip auto-allocation on weekends (Saturday=5, Sunday=6)
 is_weekend = now_kst.weekday() in [5, 6]
 
-if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and not is_weekend:
+# Auto-allocate between 08:01 and 08:05 (not 09:00 to avoid multiple triggers)
+if now_kst.hour == 8 and 1 <= now_kst.minute <= 5 and not history_today_check and not is_weekend:
     # Perform Allocation Logic (Same as Admin Button)
     # Silently run without toast
     
@@ -478,11 +479,11 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
         # FALLBACK: If user not found (e.g., '피르'), treat as new applicant with high priority
         if user_obj:
             c_type = user_obj["car_type"]
-            # CRITICAL: Convert null/None to empty string for consistent sorting
-            l_parked = user_obj.get("last_parked_date") or ""
+            # CRITICAL: Convert null/None to "1900-01-01" for highest priority (never parked)
+            l_parked = user_obj.get("last_parked_date") or "1900-01-01"
         else:
             c_type = "SEDAN" # Default for unregistered
-            l_parked = "1970-01-01" # High priority (never parked)
+            l_parked = "1900-01-01" # High priority (never parked)
             
         candidates.append({
             "type": "staff",
@@ -517,7 +518,8 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
     staff_c = [c for c in candidates if c["type"] == "staff"]
     guest_c = [c for c in candidates if c["type"] == "guest"]
     
-    staff_c.sort(key=lambda x: (x["last_parked"] if x["last_parked"] else "0000-00-00", x["timestamp"]))
+    # Sort by last_parked (None/empty = "1900-01-01" for highest priority), then by timestamp
+    staff_c.sort(key=lambda x: (x["last_parked"] if x["last_parked"] else "1900-01-01", x["timestamp"]))
     guest_c.sort(key=lambda x: x["timestamp"])
     
     # Allocation
@@ -572,7 +574,7 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
         if not assigned:
             result_wait.append(s["display_name"])
     
-    # Update last_parked for assigned staff
+    # CRITICAL: Update last_parked ONLY for assigned staff (NOT for wait list!)
     for s in staff_c:
         if s["display_name"] in result_admin or s["display_name"] in result_tower:
             for u in users:
@@ -643,14 +645,10 @@ if 8 <= now_kst.hour < 9 and now_kst.minute >= 1 and not history_today_check and
         for name in result_wait:
             slack_msg += f"\n• {strip_time(name)}"
             
-    # Send to Slack
-    success, msg = send_slack_message(slack_msg)
-    if success:
-        st.toast(f"✅ 자동 배정 및 슬랙 전송 완료!")
-    else:
-        st.toast(f"⚠️ 자동 배정 완료, 슬랙 전송 실패: {msg}")
-        
-    st.rerun()
+    # Send to Slack (CRITICAL FIX: Removed st.toast() and st.rerun())
+    # These functions don't work when no user is connected, causing notification failure
+    send_slack_message(slack_msg)
+    # No rerun needed - let the page load naturally when user visits
 
 # Date Check
 # Date Check
@@ -1074,11 +1072,13 @@ else:
                     
                     user_obj = next((u for u in users if u["name"] == u_name), None)
                     if user_obj:
+                        # CRITICAL: Convert null/None to "1900-01-01" for highest priority
+                        last_parked = user_obj.get("last_parked_date") or "1900-01-01"
                         candidates.append({
                             "type": "staff",
                             "name": u_name,
                             "car_type": user_obj["car_type"],
-                            "last_parked": user_obj["last_parked_date"],
+                            "last_parked": last_parked,
                             "timestamp": ts,
                             "display_name": f"{u_name} ({user_obj['car_type']}) {u_time}"
                         })
@@ -1107,7 +1107,8 @@ else:
                 staff_c = [c for c in candidates if c["type"] == "staff"]
                 guest_c = [c for c in candidates if c["type"] == "guest"]
                 
-                staff_c.sort(key=lambda x: (x["last_parked"] if x["last_parked"] else "0000-00-00", x["timestamp"]))
+                # Sort by last_parked (None/empty = "1900-01-01" for highest priority), then by timestamp
+                staff_c.sort(key=lambda x: (x["last_parked"] if x["last_parked"] else "1900-01-01", x["timestamp"]))
                 guest_c.sort(key=lambda x: x["timestamp"])
                 
                 # Allocation
@@ -1162,7 +1163,7 @@ else:
                     if not assigned:
                         result_wait.append(s["display_name"])
                 
-                # Update last_parked for assigned staff
+                # CRITICAL: Update last_parked ONLY for assigned staff (NOT for wait list!)
                 for s in staff_c:
                     if s["display_name"] in result_admin or s["display_name"] in result_tower:
                         for u in users:
@@ -1434,6 +1435,55 @@ else:
                             history.append(new_entry)
                             history.sort(key=lambda x: x["date"])
                             save_json(HISTORY_FILE, history)
+                            
+                            # CRITICAL FIX: Update last_parked_date for manually added users
+                            # IMPORTANT: Only for admin/tower, NOT for wait list!
+                            users_updated = False
+                            all_assigned_manual = manual_admin + manual_tower
+                            
+                            for item_str in all_assigned_manual:
+                                # item_str format: "이름 (차종)"
+                                base_name = item_str.split(" (")[0].strip()
+                                
+                                for u in users:
+                                    if u["name"] == base_name:
+                                        current_date = u.get("last_parked_date")
+                                        
+                                        needs_update = False
+                                        if not current_date:
+                                            needs_update = True
+                                        elif date_str > current_date:
+                                            needs_update = True
+                                        
+                                        if needs_update:
+                                            u["last_parked_date"] = date_str
+                                            users_updated = True
+                                        break
+                            
+                            if users_updated:
+                                save_json(USERS_FILE, users)
+                            
+                            # CRITICAL FIX: Send Slack notification if adding to today's date
+                            today_str_current = str(get_kst_time().date())
+                            if date_str == today_str_current:
+                                weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+                                today_now = get_kst_time()
+                                wday = weekday_names[today_now.weekday()]
+                                
+                                # Send notifications for admin and tower separately
+                                if manual_admin:
+                                    names_str = ", ".join([item.split(" (")[0] for item in manual_admin])
+                                    msg = f"📣 **{date_str} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 **관리실** 주차 배정에 추가되었습니다."
+                                    send_slack_message(msg)
+                                
+                                if manual_tower:
+                                    names_str = ", ".join([item.split(" (")[0] for item in manual_tower])
+                                    msg = f"📣 **{date_str} ({wday}) 주차 추가 신청 알림**\n\n✅ 수동으로 **{names_str}**님이 **타워** 주차 배정에 추가되었습니다."
+                                    send_slack_message(msg)
+                                
+                                if manual_admin or manual_tower:
+                                    st.info("💡 당일 배정 추가 내역이 슬랙으로 전송되었습니다.")
+                            
                             st.session_state["adding_manual_history"] = False
                             st.success(f"{date_str} 배정이 추가되었습니다!")
                             st.rerun()
@@ -1598,10 +1648,11 @@ else:
                                     h["wait"] = [f"{item} 수동입력" for item in edit_wait]
                                     save_json(HISTORY_FILE, history)
 
-                                    # CRITICAL FIX: Update users.json last_parked_date for manually added users
-                                    # This ensures manual edits affect future priority
+                                    # CRITICAL FIX: Update users.json last_parked_date for manually edited users
+                                    # IMPORTANT: Only for admin/tower, NOT for wait list!
+                                    # Wait list means they didn't get assigned parking, so date shouldn't update
                                     users_updated = False
-                                    all_assigned_manual = edit_admin + edit_tower
+                                    all_assigned_manual = edit_admin + edit_tower  # Excludes edit_wait!
                                     
                                     for item_str in all_assigned_manual:
                                         # item_str format example: "피치 (SUV)" or just "피치"
@@ -1631,11 +1682,6 @@ else:
                                         save_json(USERS_FILE, users)
                                     
                                     # Send Slack Notification if changed in today's list
-                                    # MOVED DEBUG LOGGING (VISIBLE TO USER)
-                                    st.error(f"DEBUG INFO: Entry Date={h['date']}")
-                                    st.error(f"DEBUG INFO: Today System Date={today_str_current}")
-                                    st.error(f"DEBUG INFO: is_today={is_today}")
-
                                     if is_today:
                                         weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
                                         today_now = get_kst_time()
@@ -1654,13 +1700,12 @@ else:
                                         added_admin = curr_admin - prev_admin
                                         added_tower = curr_tower - prev_tower
                                         
+                                        # DEBUG LOGGING (PERSISTENT TOASTS)
+                                        # st.toast(f"Date Match: {h['date']} == {today_str_current}", icon="📅")
+                                        # st.toast(f"Prev: {len(prev_admin)} / Curr: {len(curr_admin)}", icon="🔢")
+                                        # st.toast(f"Added: {added_admin}", icon="➕")
+
                                         # Handle Admin Additions
-                                        # DEBUG LOGGING (VISIBLE TO USER)
-                                        st.error(f"DEBUG INFO: Today={is_today}")
-                                        st.error(f"Prev Admin: {prev_admin}")
-                                        st.error(f"Curr Admin: {curr_admin}")
-                                        st.error(f"Added: {added_admin}")
-                                        
                                         if added_admin:
                                             names_str = ", ".join(list(added_admin))
                                             # "관리실" specific message
@@ -1684,7 +1729,7 @@ else:
 
                                     st.session_state[f"editing_hist_{h['date']}"] = False
                                     st.success("저장되었습니다!")
-                                    st.rerun()
+                                    # st.rerun() # Commented out for debugging visibility
                                 
                                 if submit_cancel:
                                     st.session_state[f"editing_hist_{h['date']}"] = False
