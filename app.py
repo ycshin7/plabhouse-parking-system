@@ -718,7 +718,17 @@ if st.session_state.page == "main":
     
     # 1. Staff Button (Tab)
     with col_t1:
-        if st.button("내일 주차 신청", key="tab_staff", use_container_width=True):
+        # Dynamic Label for "Tomorrow" (or Monday if today is Fri/Sat/Sun logic)
+        # target_date is already calculated by get_target_date()
+        target_obj = target_date # date object
+        t_month = target_obj.month
+        t_day = target_obj.day
+        day_names = ["월", "화", "수", "목", "금", "토", "일"]
+        t_wday = day_names[target_obj.weekday()]
+        
+        btn_label = f"{t_month}월 {t_day}일({t_wday}) 주차 신청"
+        
+        if st.button(btn_label, key="tab_staff", use_container_width=True):
             if st.session_state.active_tab == "staff":
                 st.session_state.active_tab = None  # Close if already open
             else:
@@ -790,7 +800,7 @@ if st.session_state.page == "main":
                             # Add to requests
                             new_req = {
                                 "name": name_select,
-                                "timestamp": datetime.now().isoformat()
+                                "timestamp": get_kst_time().isoformat()
                             }
                             requests_data["applicants"].append(new_req)
                             save_json(REQUESTS_FILE, requests_data)
@@ -833,7 +843,8 @@ if st.session_state.page == "main":
                         "location": "관리실" if "관리실" in g_loc else ("타워" if "타워" in g_loc else "상관없음"),
                         "reason": "방문",
                         "researcher": g_researcher,
-                        "timestamp": datetime.now().isoformat()
+                        "researcher": g_researcher,
+                        "timestamp": get_kst_time().isoformat()
                     }
                     requests_data["guests"].append(new_guest)
                     save_json(REQUESTS_FILE, requests_data)
@@ -1816,12 +1827,38 @@ else:
         # Current Applications
         st.markdown("#### 현재 신청 현황")
         
+        # Helper to format time for display (handling both ISO with TZ and naive)
+        def format_request_time(iso_str):
+            try:
+                dt = datetime.fromisoformat(iso_str)
+                # If naive (no timezone), assume it was UTC (old data) and convert to KST?
+                # Or just print as is?
+                # User wants KST.
+                # If it has timezone info:
+                if dt.tzinfo:
+                    # Convert to KST to be sure
+                    dt_kst = dt.astimezone(pytz.timezone('Asia/Seoul'))
+                    return dt_kst.strftime("%H:%M")
+                else:
+                    # Naive: Assume it was UTC (or server local) and we want to show KST (+9)
+                    # But safest regarding "old data" which was datetime.now() (likely UTC on cloud)
+                    # Let's add 9 hours to approximate KST or just show as is if we can't be sure
+                    # Best effort: Add 9 hours
+                    dt = dt + timedelta(hours=9)
+                    return dt.strftime("%H:%M")
+            except:
+                return "??:??"
+
         if requests_data["applicants"]:
             st.markdown("**직원 신청**")
             for app in requests_data["applicants"]:
                 name = app["name"] if isinstance(app, dict) else app
+                ts_display = ""
+                if isinstance(app, dict) and "timestamp" in app:
+                     ts_display = f" ({format_request_time(app['timestamp'])})"
+                
                 col1, col2 = st.columns([5, 1])
-                col1.write(name)
+                col1.write(f"{name}{ts_display}")
                 if col2.button("X", key=f"del_app_{name}"):
                     requests_data["applicants"].remove(app)
                     save_json(REQUESTS_FILE, requests_data)
@@ -1830,8 +1867,12 @@ else:
         if requests_data["guests"]:
             st.markdown("**손님 신청**")
             for i, g in enumerate(requests_data["guests"]):
+                ts_display = ""
+                if "timestamp" in g:
+                    ts_display = f" ({format_request_time(g['timestamp'])})"
+                
                 col1, col2 = st.columns([5, 1])
-                col1.write(f"{g['name']} - {g['researcher']}")
+                col1.write(f"{g['name']} - {g['researcher']}{ts_display}")
                 if col2.button("X", key=f"del_guest_{i}"):
                     requests_data["guests"].pop(i)
                     save_json(REQUESTS_FILE, requests_data)
