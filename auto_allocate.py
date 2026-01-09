@@ -144,7 +144,21 @@ def main():
             u_time = "00:00"
         else:
             u_name = app["name"]
-            ts = datetime.fromisoformat(app["timestamp"])
+            # KST ENFORCEMENT: Handle both Naive (old UTC) and Aware (new KST)
+            try:
+                dt_raw = datetime.fromisoformat(app["timestamp"])
+                if dt_raw.tzinfo:
+                    # Aware: Convert to KST
+                    dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                else:
+                    # Naive: Assume UTC, add 9 hours
+                    dt_kst = dt_raw + timedelta(hours=9)
+                
+                # Make naive for safe sorting with datetime.min
+                ts = dt_kst.replace(tzinfo=None)
+            except:
+                ts = datetime.min
+            
             u_time = ts.strftime("%H:%M")
         
         user_obj = next((u for u in users if u["name"] == u_name), None)
@@ -156,7 +170,7 @@ def main():
             l_parked = user_obj.get("last_parked_date") or ""
         else:
             c_type = "SEDAN" # Default for unregistered
-            l_parked = "1970-01-01" # High priority (never parked)
+            l_parked = "1900-01-01" # High priority (never parked)
             
         candidates.append({
             "type": "staff",
@@ -167,10 +181,18 @@ def main():
             "display_name": f"{u_name} ({c_type}) {u_time}"
         })
 
-    # Collect guest candidates
     for g in requests_data.get("guests", []):
         if "timestamp" in g:
-            ts = datetime.fromisoformat(g["timestamp"])
+            # KST ENFORCEMENT
+            try:
+                dt_raw = datetime.fromisoformat(g["timestamp"])
+                if dt_raw.tzinfo:
+                    dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                else:
+                    dt_kst = dt_raw + timedelta(hours=9)
+                ts = dt_kst.replace(tzinfo=None)
+            except:
+                ts = datetime.min
             time_str = ts.strftime("%H:%M")
         else:
             ts = datetime.min
@@ -191,8 +213,9 @@ def main():
     guest_c = [c for c in candidates if c["type"] == "guest"]
     
     # Sort staff by last_parked (empty/null is priority) then timestamp
+    # CRITICAL: Match logic with app.py
     staff_c.sort(key=lambda x: (
-        datetime.fromisoformat(x["last_parked"]) if x["last_parked"] else datetime.min,
+        x["last_parked"] if x["last_parked"] else "1900-01-01",
         x["timestamp"]
     ))
     # Sort guests by timestamp
