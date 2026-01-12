@@ -1,6 +1,11 @@
 {
     "target_date": "2026-01-13",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "피르",
+            "timestamp": "2026-01-12T18:03:14.521622+09:00"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
