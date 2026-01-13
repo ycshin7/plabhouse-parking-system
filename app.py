@@ -451,8 +451,8 @@ history_today_check = next((h for h in history if h["date"] == today_str), None)
 # CRITICAL FIX: Skip auto-allocation on weekends (Saturday=5, Sunday=6)
 is_weekend = now_kst.weekday() in [5, 6]
 
-# Auto-allocate between 08:01 and 08:05 (not 09:00 to avoid multiple triggers)
-if now_kst.hour == 8 and 1 <= now_kst.minute <= 5 and not history_today_check and not is_weekend:
+# Auto-allocate between 08:01 and 09:00 (Extended Safe Window)
+if now_kst.hour == 8 and 1 <= now_kst.minute <= 59 and not history_today_check and not is_weekend:
     # Perform Allocation Logic (Same as Admin Button)
     # Silently run without toast
     
