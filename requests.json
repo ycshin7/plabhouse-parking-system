@@ -11,5 +11,5 @@
         }
     ],
     "guests": [],
-    "sante_opt_out": false
+    "sante_opt_out": true
 }
