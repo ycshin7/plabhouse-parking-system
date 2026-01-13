@@ -113,8 +113,29 @@ def main():
                 print(f"   ... {wait_seconds / 60:.0f} minutes remaining")
             time.sleep(wait_seconds)
             print("⏰ It's time! Starting allocation.")
+            
+    # CRITICAL FIX: Fetch latest data just before allocation
+    # GitHub Actions checks out code early (e.g. 07:30). We must pull changes 
+    # that happened while we were waiting (e.g. 07:55 requests).
+    print("� Fetching latest data from GitHub...")
+    try:
+        os.system("git config pull.rebase false")
+        os.system("git pull")
+        print("✅ Data synchronized.")
+    except Exception as e:
+        print(f"⚠️ Git pull failed: {e}")
 
-    print(f"📅 Target date: {today_str}")
+    # RELOAD DATA after pull
+    print("📂 Reloading data files...")
+    users = load_json(USERS_FILE, [])
+    # History load skipped as we haven't modified it yet, but safe to reload if needed.
+    # Requests is critical.
+    requests_data = load_json(REQUESTS_FILE, {
+        "target_date": "",
+        "applicants": [],
+        "guests": [],
+        "sante_opt_out": False
+    })
     
     # Check if already allocated
     history_today = next((h for h in history if h["date"] == today_str), None)
