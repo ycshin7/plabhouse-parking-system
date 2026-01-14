@@ -313,11 +313,21 @@ def save_json(file_path, data):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     
+    # Check if we are in Offline Mode (Bad Auth)
+    if st.session_state.get("github_auth_error", False):
+        # Do not try to save, do not show error banner.
+        return
+
     # Save to GitHub
     success = github_sync.save_to_github(file_path, data, f"Update {file_path} from Streamlit App")
     
     if not success:
-        st.error(f"⚠️ {file_path} GitHub 저장 실패! Secrets의 GITHUB_TOKEN과 GITHUB_REPO를 확인해주세요.")
+        # If failure wasn't due to Auth Error (discovered inside save_to_github), show error.
+        # If it WAS auth error, github_sync set the flag, so we can check again.
+        if st.session_state.get("github_auth_error", False):
+            pass # Suppress
+        else:
+             st.error(f"⚠️ {file_path} GitHub 저장 실패! Secrets의 GITHUB_TOKEN과 GITHUB_REPO를 확인해주세요.")
 
 def get_kst_time():
     return datetime.now(pytz.timezone('Asia/Seoul'))
@@ -377,7 +387,10 @@ if "github_load_failed" not in st.session_state:
     st.session_state.github_load_failed = False
 
 # Display Global Warning if Load Failed
-if st.session_state.github_load_failed:
+# Display Global Warning if Load Failed or Auth Failed
+if st.session_state.get("github_auth_error", False):
+    st.warning("⚠️ 인증 토큰 만료됨: 현재 '오프라인 모드'입니다. 데이터가 로컬에만 저장되며, 재시작 시 사라질 수 있습니다. Streamlit Secrets에서 GITHUB_TOKEN을 갱신해주세요.", icon="🔌")
+elif st.session_state.github_load_failed:
     st.error("🚨 [긴급] GitHub 데이터 불러오기 실패! 현재 '오프라인 모드'입니다. 지금 저장하면 기존 데이터가 삭제될 수 있으니, 인터넷 연결을 확인하거나 잠시 후 다시 접속해주세요.", icon="🚫")
 if "show_staff_form" not in st.session_state:
     st.session_state.show_staff_form = False
