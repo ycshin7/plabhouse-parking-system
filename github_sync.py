@@ -92,3 +92,41 @@ def save_to_github(file_path, data, commit_message):
     except Exception as e:
         print(f"GitHub Save Error: {e}")
         return False
+
+def diagnose_github_issue():
+    """
+    Returns (success: bool, message: str)
+    Diagnostic function to find the exact cause of connection failure.
+    """
+    try:
+        token = st.secrets.get("GITHUB_TOKEN")
+        repo_name = st.secrets.get("GITHUB_REPO")
+    except:
+        return False, "Secrets를 읽을 수 없습니다."
+
+    if not token:
+        return False, "GITHUB_TOKEN이 Secrets에 설정되지 않았습니다."
+    if not repo_name:
+        return False, "GITHUB_REPO가 Secrets에 설정되지 않았습니다."
+    
+    try:
+        g = Github(token)
+        # 1. Auth Check (API Call)
+        try:
+            user = g.get_user()
+            login = user.login
+        except Exception as e:
+            return False, f"Github 로그인 실패 (Token 확인 필요): {e}"
+            
+        # 2. Repo Check (API Call)
+        try:
+            repo = g.get_repo(repo_name)
+            # Make sure we can actually read something
+            repo.get_contents("README.md") # Try to read a standard file or root
+        except Exception as e:
+            return False, f"저장소 '{repo_name}' 접근/읽기 실패: {e}"
+            
+        return True, f"Github 연결 성공! (계정: {login}, 저장소: {repo_name})"
+        
+    except Exception as e:
+        return False, f"Github 초기화 오류: {e}"
