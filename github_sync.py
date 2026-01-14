@@ -55,6 +55,10 @@ def load_from_github(file_path, default_data):
         if e.status == 404:
             # File not found
             return None
+        if e.status == 401 or e.status == 403:
+            st.session_state["github_auth_error"] = True
+            print(f"GitHub Auth Error: {e}")
+            return None
         print(f"GitHub API Error: {e}")
         return None
     except Exception as e:
@@ -65,6 +69,10 @@ def save_to_github(file_path, data, commit_message):
     """
     Saves JSON data to GitHub.
     """
+    # Fail fast if we already know auth is bad
+    if st.session_state.get("github_auth_error", False):
+        return False
+
     token = st.secrets.get("GITHUB_TOKEN")
     repo_name = st.secrets.get("GITHUB_REPO")
     
@@ -86,10 +94,16 @@ def save_to_github(file_path, data, commit_message):
             if e.status == 404:
                 # File doesn't exist, create it
                 repo.create_file(file_path, commit_message, json_content)
+            elif e.status == 401 or e.status == 403:
+                st.session_state["github_auth_error"] = True
+                return False
             else:
                 raise e
         return True
     except Exception as e:
+        # Catch top level auth errors too (e.g. get_repo failing)
+        if isinstance(e, GithubException) and (e.status == 401 or e.status == 403):
+             st.session_state["github_auth_error"] = True
         print(f"GitHub Save Error: {e}")
         return False
 
@@ -124,7 +138,12 @@ def diagnose_github_issue():
             # Make sure we can actually read something
             repo.get_contents("README.md") # Try to read a standard file or root
         except Exception as e:
-            return False, f"저장소 '{repo_name}' 접근/읽기 실패: {e}"
+            # Diagnosis: List available repos to see if it's a permission issue or typo
+            try:
+                available_repos = [r.full_name for r in user.get_repos(sort="updated")[:5]]
+                return False, f"⚠️ 접근 실패! (내 계정: {login})\n\n목표 저장소: '{repo_name}' (찾을 수 없음)\n\n✅ 내 토큰으로 보이는 저장소 목록 (최신순 5개):\n" + "\n".join([f"- {r}" for r in available_repos]) + "\n\n(위 목록에 없다면 저장소 이름 오타이거나, 권한이 부족한 것입니다.)"
+            except:
+                return False, f"저장소 '{repo_name}' 접근/읽기 실패: {e} (권한 없음)"
             
         return True, f"Github 연결 성공! (계정: {login}, 저장소: {repo_name})"
         
