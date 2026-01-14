@@ -135,17 +135,23 @@ def diagnose_github_issue():
         # 2. Repo Check (API Call)
         try:
             repo = g.get_repo(repo_name)
-            # Make sure we can actually read something
-            repo.get_contents("README.md") # Try to read a standard file or root
+            # Try to read root directory instead of specific file
+            contents = repo.get_contents("")
+            file_count = len(contents) if isinstance(contents, list) else 1
+            return True, f"Github 연결 성공! (계정: {login}, 저장소: {repo_name}, 파일 {file_count}개)"
         except Exception as e:
             # Diagnosis: List available repos to see if it's a permission issue or typo
             try:
                 available_repos = [r.full_name for r in user.get_repos(sort="updated")[:5]]
-                return False, f"⚠️ 접근 실패! (내 계정: {login})\n\n목표 저장소: '{repo_name}' (찾을 수 없음)\n\n✅ 내 토큰으로 보이는 저장소 목록 (최신순 5개):\n" + "\n".join([f"- {r}" for r in available_repos]) + "\n\n(위 목록에 없다면 저장소 이름 오타이거나, 권한이 부족한 것입니다.)"
+                
+                # Double check if we actually found the repo object but just couldn't read contents
+                # If e is 404 on get_contents, it means repo exists but is empty
+                if "404" in str(e) and repo_name in available_repos:
+                     return True, f"Github 연결 성공! (계정: {login}, 저장소: {repo_name})\n⚠️ 주의: 저장소가 비어있거나 파일을 읽을 수 없습니다. (데이터가 아직 없을 수 있음)"
+                
+                return False, f"⚠️ 접근 실패! (내 계정: {login})\n\n목표 저장소: '{repo_name}' (읽기 실패: {e})\n\n✅ 내 토큰으로 보이는 저장소 목록 (최신순 5개):\n" + "\n".join([f"- {r}" for r in available_repos])
             except:
                 return False, f"저장소 '{repo_name}' 접근/읽기 실패: {e} (권한 없음)"
-            
-        return True, f"Github 연결 성공! (계정: {login}, 저장소: {repo_name})"
         
     except Exception as e:
         return False, f"Github 초기화 오류: {e}"
