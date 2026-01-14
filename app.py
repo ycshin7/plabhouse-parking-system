@@ -1784,36 +1784,37 @@ else:
         
         st.markdown("### 데이터 저장 확인 (GitHub)")
         
-        if st.button("GitHub 저장 상태 확인하기"):
-            with st.spinner("GitHub와 통신 중입니다..."):
-                try:
-                    gh_history = github_sync.load_from_github(HISTORY_FILE, [])
-                    if gh_history is None:
-                        # Check specific error
-                        token = st.secrets.get("GITHUB_TOKEN")
-                        repo = st.secrets.get("GITHUB_REPO")
-                        if not token:
-                            st.error("Github 연결 실패: GITHUB_TOKEN Secret이 없습니다.")
-                        elif not repo:
-                            st.error("Github 연결 실패: GITHUB_REPO Secret이 없습니다.")
+        if st.button("Github 저장 상태 확인하기"):
+            with st.spinner("Github와 통신 중입니다..."):
+                # 1. Connectivity Diagnosis
+                success, msg = github_sync.diagnose_github_issue()
+                
+                if not success:
+                    st.error(msg)
+                else:
+                    st.success(msg)
+                    
+                    # 2. Data Sync Check
+                    try:
+                        gh_history = github_sync.load_from_github(HISTORY_FILE, [])
+                        if gh_history is None:
+                            st.error("연결은 성공했으나, 데이터 파일을 읽을 수 없습니다.")
                         else:
-                            st.error("Github 연결 실패! API 오류 또는 타임아웃일 수 있습니다. 잠시 후 다시 시도해주세요.")
-                    else:
-                        local_count = len(history)
-                        gh_count = len(gh_history)
-                        
-                        if local_count == gh_count:
-                            if local_count > 0 and history[-1] == gh_history[-1]:
-                                st.success("GitHub와 동기화 완료! (데이터 일치)")
-                            else:
-                                st.warning("데이터 개수는 같지만 내용이 다를 수 있습니다.")
-                        elif local_count > gh_count:
-                            st.warning("로컬 데이터가 더 많습니다. (저장되지 않은 데이터 존재)")
-                        else: # local_count < gh_count
-                            st.warning(f"GitHub 데이터가 더 많습니다. (로컬 {local_count}건 vs GitHub {gh_count}건)")
-                            st.write("방금 저장했다면 10초 뒤에 다시 눌러보세요.")
-                except Exception as e:
-                    st.error(f"확인 중 오류 발생: {e}")
+                            local_count = len(history)
+                            gh_count = len(gh_history)
+                            
+                            if local_count == gh_count:
+                                if local_count > 0 and history[-1] == gh_history[-1]:
+                                    st.info("✅ 데이터가 Github와 완벽하게 일치합니다.")
+                                else:
+                                    st.warning("데이터 개수는 같지만 내용이 다를 수 있습니다.")
+                            elif local_count > gh_count:
+                                st.warning("로컬 데이터가 더 많습니다. (저장되지 않은 데이터 존재)")
+                            else: # local_count < gh_count
+                                st.warning(f"Github 데이터가 더 많습니다. (로컬 {local_count}건 vs Github {gh_count}건)")
+                                st.write("방금 저장했다면 10초 뒤에 다시 눌러보세요.")
+                    except Exception as e:
+                        st.error(f"데이터 확인 중 오류 발생: {e}")
         
         st.divider()
 
