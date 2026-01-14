@@ -451,8 +451,8 @@ history_today_check = next((h for h in history if h["date"] == today_str), None)
 # CRITICAL FIX: Skip auto-allocation on weekends (Saturday=5, Sunday=6)
 is_weekend = now_kst.weekday() in [5, 6]
 
-# Auto-allocate between 08:01 and 09:00 (Extended Safe Window)
-if now_kst.hour == 8 and 1 <= now_kst.minute <= 59 and not history_today_check and not is_weekend:
+# Auto-allocate between 08:01 and 08:10 (Tightened Safe Window to prevent late double-allocation)
+if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed:
     # Perform Allocation Logic (Same as Admin Button)
     # Silently run without toast
     
@@ -757,6 +757,7 @@ if st.session_state.page == "main":
         if st.button(btn_text, key="btn_sante_toggle", use_container_width=True):
             # Toggle Logic
             requests_data["sante_opt_out"] = not requests_data.get("sante_opt_out", False)
+            requests_data["sante_status_updated_at"] = get_kst_time().isoformat() # Track timestamp
             save_json(REQUESTS_FILE, requests_data)
             st.rerun()
 
@@ -873,6 +874,7 @@ if st.session_state.page == "main":
                 st.info("방문이 취소되었다면 아래 버튼을 눌러주세요.")
                 if st.button("방문 취소 (OFF)", use_container_width=True):
                     requests_data["sante_opt_out"] = True
+                    requests_data["sante_status_updated_at"] = get_kst_time().isoformat()
                     save_json(REQUESTS_FILE, requests_data)
                     st.rerun()
             else:
@@ -880,6 +882,7 @@ if st.session_state.page == "main":
                 st.info("방문이 예정되어 있다면 아래 버튼을 눌러주세요.")
                 if st.button("방문 설정 (ON)", type="primary", use_container_width=True):
                     requests_data["sante_opt_out"] = False
+                    requests_data["sante_status_updated_at"] = get_kst_time().isoformat()
                     save_json(REQUESTS_FILE, requests_data)
                     st.rerun()
 
@@ -896,6 +899,9 @@ if st.session_state.page == "main":
         st.metric("손님 신청 현황", f"{guest_count}명")
     with col3:
         st.metric("상떼 주차 여부", sante_status)
+        if "sante_status_updated_at" in requests_data:
+            sante_time = format_request_time(requests_data["sante_status_updated_at"])
+            st.caption(f"(변경: {sante_time})")
         
     # Admin Button - Relocated to bottom right
     st.markdown("---")
@@ -1549,7 +1555,8 @@ else:
             else:
                 st.markdown(f"#### 배정 내역 ({len(filtered_history)}건)")
                 
-                for idx, h in enumerate(reversed(filtered_history)):
+                # CRITICAL FIX: Removed reversed() as history is already sorted New -> Old
+                for idx, h in enumerate(filtered_history):
                     with st.expander(f"📅 {h['date']}", expanded=False):
                         # Edit/Delete buttons - HORIZONTAL
                         # Adjusted columns to give buttons enough width to not wrap
@@ -1782,7 +1789,15 @@ else:
                 try:
                     gh_history = github_sync.load_from_github(HISTORY_FILE, [])
                     if gh_history is None:
-                        st.error("GitHub 연결 실패! 데이터가 저장되지 않았을 수 있습니다.")
+                        # Check specific error
+                        token = st.secrets.get("GITHUB_TOKEN")
+                        repo = st.secrets.get("GITHUB_REPO")
+                        if not token:
+                            st.error("Github 연결 실패: GITHUB_TOKEN Secret이 없습니다.")
+                        elif not repo:
+                            st.error("Github 연결 실패: GITHUB_REPO Secret이 없습니다.")
+                        else:
+                            st.error("Github 연결 실패! API 오류 또는 타임아웃일 수 있습니다. 잠시 후 다시 시도해주세요.")
                     else:
                         local_count = len(history)
                         gh_count = len(gh_history)
@@ -1863,6 +1878,14 @@ else:
                     requests_data["applicants"].remove(app)
                     save_json(REQUESTS_FILE, requests_data)
                     st.rerun()
+
+        st.markdown("**상떼 주차 상태**")
+        sante_status = "안 함 (방문 취소)" if requests_data.get("sante_opt_out") else "함 (방문)"
+        ts_display = ""
+        if "sante_status_updated_at" in requests_data:
+             ts_display = f" (변경: {format_request_time(requests_data['sante_status_updated_at'])})"
+        
+        st.write(f"- 상태: **{sante_status}**{ts_display}")
         
         if requests_data["guests"]:
             st.markdown("**손님 신청**")
