@@ -137,6 +137,23 @@ def main():
         "sante_opt_out": False
     })
     
+    # DEBUG: Log the state of requests_data after reload
+    print(f"📂 Loaded requests_data:")
+    print(f"   target_date: {requests_data.get('target_date')}")
+    print(f"   applicants: {len(requests_data.get('applicants', []))} entries")
+    print(f"   guests: {len(requests_data.get('guests', []))} entries")
+    print(f"   sante_opt_out: {requests_data.get('sante_opt_out')}")
+    
+    # Print full applicants data for debugging
+    if requests_data.get('applicants'):
+        print(f"   Applicants detail:")
+        for i, app in enumerate(requests_data['applicants']):
+            print(f"     [{i+1}] {app}")
+    if requests_data.get('guests'):
+        print(f"   Guests detail:")
+        for i, g in enumerate(requests_data['guests']):
+            print(f"     [{i+1}] {g}")
+    
     # Check if already allocated
     history_today = next((h for h in history if h["date"] == today_str), None)
     if history_today:
@@ -201,6 +218,7 @@ def main():
             "timestamp": ts,
             "display_name": f"{u_name} ({c_type}) {u_time}"
         })
+        print(f"  ✅ Added staff candidate: {u_name} ({c_type}) - last_parked: {l_parked}, timestamp: {u_time}")
 
     for g in requests_data.get("guests", []):
         if "timestamp" in g:
@@ -227,6 +245,7 @@ def main():
             "timestamp": ts,
             "display_name": f"{g['name']} ({g['car_type']}) {time_str}"
         })
+        print(f"  ✅ Added guest candidate: {g['name']} ({g['car_type']}) - location: {g.get('location', 'N/A')}, timestamp: {time_str}")
     
     
     # Sort
@@ -321,9 +340,13 @@ def main():
     save_json(HISTORY_FILE, history)
     
     print(f"✅ Allocation completed:")
-    print(f"   🏢 Admin: {len(result_admin)}/{admin_slots}")
-    print(f"   🅿️ Tower: {len(result_tower)}/{tower_slots}")
+    print(f"   🏢 Admin: {len(result_admin)}/{1} (remaining: {admin_capacity - len(result_admin)})")
+    print(f"   🅿️ Tower: {len(result_tower)}/{tower_capacity} (remaining: {tower_capacity - len(result_tower)})")
     print(f"   ⏳ Wait: {len(result_wait)}")
+    print(f"   📋 Result details:")
+    print(f"      Admin: {result_admin}")
+    print(f"      Tower: {result_tower}")
+    print(f"      Wait: {result_wait}")
     
     # Prepare Slack message
     day_names = ["월", "화", "수", "목", "금", "토", "일"]
@@ -374,6 +397,7 @@ def main():
     
     # Send to Slack
     print("📤 Sending Slack notification...")
+    print(f"Message preview (first 200 chars): {slack_msg[:200]}...")
     success, msg = send_slack_message(slack_msg)
     
     if success:
