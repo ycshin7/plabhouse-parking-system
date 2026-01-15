@@ -13,7 +13,9 @@
         "car_type": "SEDAN",
         "last_parked_date": "2026-01-14",
         "car_detail": "비엔츠",
-        "car_plate": ""
+        "car_plate": "",
+        "car_number": "53어0220",
+        "car_details": ""
     },
     {
         "name": "라크",
