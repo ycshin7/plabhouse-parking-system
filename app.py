@@ -465,7 +465,9 @@ history_today_check = next((h for h in history if h["date"] == today_str), None)
 is_weekend = now_kst.weekday() in [5, 6]
 
 # Auto-allocate between 08:01 and 08:10 (Tightened Safe Window to prevent late double-allocation)
-if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed:
+# CRITICAL FIX: Also check if there are any applicants before attempting allocation
+has_applicants = bool(requests_data.get("applicants") or requests_data.get("guests"))
+if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed and has_applicants:
     # Perform Allocation Logic (Same as Admin Button)
     # Silently run without toast
     
@@ -663,15 +665,22 @@ if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check a
     send_slack_message(slack_msg)
     # No rerun needed - let the page load naturally when user visits
 
-# Date Check
-# Date Check
+# Date Check - CRITICAL LOGIC: Reset requests_data when date changes
+# This runs EVERY TIME someone loads the page, so timing is crucial!
 if requests_data["target_date"] != str(target_date):
     # BACKUP LOGIC: Save previous data before reset
     old_date = requests_data["target_date"]
+    old_applicants_count = len(requests_data.get("applicants", []))
+    old_guests_count = len(requests_data.get("guests", []))
+    
+    # DEBUG: Log this critical event
+    print(f"[DATE_CHANGE] {now_kst.strftime('%Y-%m-%d %H:%M:%S KST')} - Changing target_date from '{old_date}' to '{target_date}'")
+    print(f"[DATE_CHANGE] Previous data: {old_applicants_count} applicants, {old_guests_count} guests")
+    
     if requests_data["applicants"] or requests_data["guests"]:
         backup_file = f"requests_backup_{old_date}.json"
         save_json(backup_file, requests_data)
-        # Optional: We could also log this action
+        print(f"[DATE_CHANGE] Backed up to {backup_file}")
         
     requests_data = {
         "target_date": str(target_date),
@@ -680,6 +689,7 @@ if requests_data["target_date"] != str(target_date):
         "sante_opt_out": False
     }
     save_json(REQUESTS_FILE, requests_data)
+    print(f"[DATE_CHANGE] Reset complete. New target_date: {target_date}")
 
 local_css()
 
@@ -856,7 +866,6 @@ if st.session_state.page == "main":
                         "car_type": "SUV" if g_car == "SUV/VAN" else "SEDAN",
                         "location": "관리실" if "관리실" in g_loc else ("타워" if "타워" in g_loc else "상관없음"),
                         "reason": "방문",
-                        "researcher": g_researcher,
                         "researcher": g_researcher,
                         "timestamp": get_kst_time().isoformat()
                     }
@@ -1463,7 +1472,7 @@ else:
                                 "wait": manual_wait
                             }
                             history.append(new_entry)
-                            history.sort(key=lambda x: x["date"])
+                            history.sort(key=lambda x: x["date"], reverse=True)
                             save_json(HISTORY_FILE, history)
                             
                             # CRITICAL FIX: Update last_parked_date for manually added users
