@@ -334,8 +334,10 @@ def main():
         "wait": result_wait
     }
     
+    # CRITICAL: Remove existing entry for today (if any) and add new one
     history = [h for h in history if h["date"] != today_str]
     history.append(history_entry)
+    # Sort by date in reverse chronological order (newest first)
     history.sort(key=lambda x: x["date"], reverse=True)
     save_json(HISTORY_FILE, history)
     
@@ -403,7 +405,10 @@ def main():
     if success:
         print(f"✅ {msg}")
     else:
-        print(f"❌ {msg}")
+        print(f"❌ Slack notification failed: {msg}")
+        # Send error alert to Slack (if webhook is configured)
+        error_alert = f"⚠️ **자동 배정 스크립트 실행됨, 하지만 슬랙 알림 전송 실패**\n\n날짜: {today_str}\n오류: {msg}\n\n배정 결과는 GitHub에 저장되었습니다."
+        send_slack_message(error_alert)
     
     # Commit changes to GitHub
     print("💾 Committing changes to GitHub...")
