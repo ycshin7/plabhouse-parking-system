@@ -600,12 +600,16 @@ if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check a
     save_json(USERS_FILE, users)
     
     # Save to history
+    # CRITICAL: Remove existing entry for today (if any) and add new one
+    history = [h for h in history if h["date"] != today_str]
     history.append({
         "date": today_str,
         "admin": result_admin,
         "tower": result_tower,
         "wait": result_wait
     })
+    # Sort by date in reverse chronological order (newest first)
+    history.sort(key=lambda x: x["date"], reverse=True)
     save_json(HISTORY_FILE, history)
     
     # Generate Slack Message
