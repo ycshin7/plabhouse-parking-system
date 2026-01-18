@@ -1,6 +1,11 @@
 {
     "target_date": "2026-01-19",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "뉴진",
+            "timestamp": "2026-01-18T18:02:26.025964+09:00"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
