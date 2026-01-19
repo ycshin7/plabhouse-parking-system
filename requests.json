@@ -1,6 +1,11 @@
 {
     "target_date": "2026-01-20",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "아키",
+            "timestamp": "2026-01-19T18:03:46.582760+09:00"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
