@@ -352,6 +352,15 @@ def get_target_date():
     return target
 
 
+def format_request_time(iso_timestamp):
+    if not iso_timestamp:
+        return ""
+    try:
+        dt = datetime.fromisoformat(iso_timestamp)
+        return dt.strftime("%H:%M")
+    except ValueError:
+        return ""
+
 def send_slack_message(message):
     """
     Send a message to Slack using webhook URL from secrets.
