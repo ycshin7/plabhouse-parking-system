@@ -475,8 +475,23 @@ is_weekend = now_kst.weekday() in [5, 6]
 
 # Auto-allocate between 08:01 and 08:10 (Tightened Safe Window to prevent late double-allocation)
 # CRITICAL FIX: Also check if there are any applicants before attempting allocation
-has_applicants = bool(requests_data.get("applicants") or requests_data.get("guests"))
-if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed and has_applicants:
+# FORCE RELOAD DATA: Essential for long-running bot sessions to see updates from other users
+if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed:
+    print(f"[AUTO_ALLOCATION] Time check passed: {now_kst.strftime('%H:%M:%S')}")
+    
+    # 1. Force Reload Data (Bypass Session State Cache)
+    # This ensures we see applications made by others while this bot session was idle/running
+    requests_data = load_json(REQUESTS_FILE, {
+        "target_date": str(target_date),
+        "applicants": [],
+        "guests": [],
+        "sante_opt_out": False
+    })
+    users = load_json(USERS_FILE, [])
+    
+    has_applicants = bool(requests_data.get("applicants") or requests_data.get("guests"))
+    
+    if has_applicants:
     # Perform Allocation Logic (Same as Admin Button)
     # Silently run without toast
     
@@ -764,11 +779,19 @@ if st.session_state.page == "main":
         
         btn_label = f"{t_month}월 {t_day}일({t_wday}) 주차 신청"
         
-        if st.button(btn_label, key="tab_staff", use_container_width=True):
-            if st.session_state.active_tab == "staff":
-                st.session_state.active_tab = None  # Close if already open
-            else:
-                st.session_state.active_tab = "staff"  # Open
+        # DEADLINE CHECK: If it is between 08:00 and 09:00 AM, and target_date is TODAY, prevent application.
+        # Because allocation runs at 08:01. Applying at 08:09 for 'Today' is invalid.
+        now_check = get_kst_time()
+        is_deadline_missed = (now_check.hour == 8 and target_obj == now_check.date())
+        
+        if is_deadline_missed:
+            st.warning("⛔ 금일 배정이 마감되었습니다. (내일 신청은 09시부터 가능)")
+        else:
+            if st.button(btn_label, key="tab_staff", use_container_width=True):
+                if st.session_state.active_tab == "staff":
+                    st.session_state.active_tab = None  # Close if already open
+                else:
+                    st.session_state.active_tab = "staff"  # Open
 
     # 2. Guest Button (Tab)
     with col_t2:
