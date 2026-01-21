@@ -1408,6 +1408,9 @@ else:
                 filter_end = st.session_state.get("filter_end")
                 filtered_history = [h for h in history if filter_start <= h["date"] <= filter_end]
             
+            # CRITICAL FIX: Ensure display is sorted by date descending (Newest first)
+            filtered_history.sort(key=lambda x: x["date"], reverse=True)
+            
             if not filtered_history:
                 st.info("선택한 기간에 배정 내역이 없습니다.")
             else:
