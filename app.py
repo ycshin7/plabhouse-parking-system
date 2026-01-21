@@ -476,7 +476,9 @@ is_weekend = now_kst.weekday() in [5, 6]
 # Auto-allocate between 08:01 and 08:10 (Tightened Safe Window to prevent late double-allocation)
 # CRITICAL FIX: Also check if there are any applicants before attempting allocation
 # FORCE RELOAD DATA: Essential for long-running bot sessions to see updates from other users
-if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed:
+# DISABLE AUTO-ALLOCATION IN APP (Conflict with GitHub Actions)
+# if now_kst.hour == 8 and 1 <= now_kst.minute <= 10 and not history_today_check and not is_weekend and not st.session_state.github_load_failed:
+if False: # Disabled to prevent conflict
     print(f"[AUTO_ALLOCATION] Time check passed: {now_kst.strftime('%H:%M:%S')}")
     
     # 1. Force Reload Data (Bypass Session State Cache)
@@ -1147,8 +1149,18 @@ else:
                     
                     user_obj = next((u for u in users if u["name"] == u_name), None)
                     if user_obj:
-                        # CRITICAL: Convert null/None to "1900-01-01" for highest priority
-                        last_parked = user_obj.get("last_parked_date") or "1900-01-01"
+                        # CRITICAL FIX: Dynamic Last Parked Date from History
+                        # Do not rely on users.json 'last_parked_date'
+                        last_parked = "1900-01-01"
+                        for h in history:
+                            # Normalize names in history (remove car info/time)
+                            # History items: "Name (Car) Time" or "Name (Car)"
+                            for item in h.get("admin", []) + h.get("tower", []):
+                                base = item.split(" (")[0]
+                                if base == u_name:
+                                    if h["date"] > last_parked:
+                                        last_parked = h["date"]
+                        
                         candidates.append({
                             "type": "staff",
                             "name": u_name,
@@ -1255,6 +1267,8 @@ else:
                     "tower": result_tower,
                     "wait": result_wait
                 })
+                # CRITICAL: Sort by date descending
+                history.sort(key=lambda x: x["date"], reverse=True)
                 save_json(HISTORY_FILE, history)
                 
                 st.success("배정이 완료되었습니다!")
