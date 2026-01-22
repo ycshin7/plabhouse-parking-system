@@ -1,14 +1,21 @@
 name: Daily Parking Allocation
+
 on:
   schedule:
-    # 매일 한국 시간 08:01 (UTC 23:01) 실행 (일~목) -> 월~금 아침 작동
-    - cron: '1 23 * * 0-4'
-  workflow_dispatch:  # 수동 실행 허용
+    # CRITICAL FIX: 0-4 means Sunday to Thursday in UTC
+    # Sunday 23:00 UTC = Monday 08:00 KST
+    # Monday 23:00 UTC = Tuesday 08:00 KST
+    # ...
+    # Thursday 23:00 UTC = Friday 08:00 KST
+    # This ensures Mon-Fri 08:00 KST execution
+    - cron: '00 23 * * 0-4'  # Sunday-Thursday at 23:00 UTC → Mon-Fri 08:00 KST
+  workflow_dispatch:  # Allow manual trigger
+
 jobs:
   allocate-and-notify:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # GitHub에 결과 저장을 위해 필수
+      contents: write  # Allow pushing changes
     
     steps:
     - name: Checkout repository
@@ -29,4 +36,11 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
+        set -e  # Exit immediately if any command fails
         python auto_allocate.py
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Workflow failed! Check logs at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        # You can add additional notification logic here (e.g., send to a backup channel)
