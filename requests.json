@@ -1,6 +1,11 @@
 {
     "target_date": "2026-01-27",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "루니",
+            "timestamp": "2026-01-26T18:00:41.942275+09:00"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
