@@ -2,18 +2,25 @@ name: Daily Parking Allocation
 
 on:
   schedule:
-    # CRITICAL FIX for GitHub Actions Schedule Delay
-    # GitHub Actions has severe schedule delays (20-30 minutes)
-    # Setting to 22:00 UTC (07:00 KST) to ensure execution by 08:01 KST
-    # The script has a built-in wait until 08:01 KST, so early start is safe
-    # 
-    # Sunday 22:00 UTC = Monday 07:00 KST → waits until 08:01 → executes
-    # Monday 22:00 UTC = Tuesday 07:00 KST → waits until 08:01 → executes
-    # ...
-    # Thursday 22:00 UTC = Friday 07:00 KST → waits until 08:01 → executes
-    #
-    # This ensures Mon-Fri 08:01 KST execution despite GitHub's delays
-    - cron: '00 22 * * 0-4'  # Sunday-Thursday at 22:00 UTC → Mon-Fri 07:00-08:01 KST
+    # TRIPLE-LAYER RELIABILITY SYSTEM
+    # Multiple scheduled times ensure execution even if one fails
+    # All times are for Monday-Friday (Sunday-Thursday 22:00-23:00 UTC)
+    
+    # Primary: 07:00 KST (Sunday-Thursday 22:00 UTC)
+    - cron: '00 22 * * 0-4'
+    
+    # Backup Layer 1: 07:30 KST (Sunday-Thursday 22:30 UTC)
+    - cron: '30 22 * * 0-4'
+    
+    # Backup Layer 2: 08:00 KST (Sunday-Thursday 23:00 UTC)
+    - cron: '00 23 * * 0-4'
+    
+    # Note: The script has built-in wait until 08:01 KST
+    # Note: Duplicate execution prevention ensures only one allocation per day
+  
+  repository_dispatch:
+    types: [daily-allocation]  # Trigger from external cron service (cron-job.org)
+  
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
