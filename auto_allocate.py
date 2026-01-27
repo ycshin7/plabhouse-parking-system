@@ -298,6 +298,26 @@ def main():
         print("   (Weekend applications will accumulate for Monday)")
         return
     
+    # Step 2.5: DUPLICATE EXECUTION PREVENTION
+    # Load history early to check if today's allocation already exists
+    print("\n" + "="*50)
+    print("🔍 CHECKING FOR DUPLICATE EXECUTION")
+    print("="*50)
+    
+    history_preliminary = load_json(HISTORY_FILE, [])
+    target_date_str = str(get_target_date())
+    existing_entry = next((h for h in history_preliminary if h["date"] == target_date_str), None)
+    
+    if existing_entry and existing_entry.get("slack_notified", False):
+        print(f"✅ Allocation for {target_date_str} already exists and notification was sent.")
+        print("   This is likely a duplicate execution from multiple triggers.")
+        print("   Exiting gracefully to prevent duplicate processing.")
+        print("="*50 + "\n")
+        return
+    
+    print(f"✅ No duplicate detected. Proceeding with allocation for {target_date_str}.")
+    print("="*50 + "\n")
+    
     # Step 3: Wait until 08:01 KST if running early
     target_hour = 8
     target_minute = 1
