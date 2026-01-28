@@ -1,6 +1,15 @@
 {
     "target_date": "2026-01-29",
     "applicants": [],
-    "guests": [],
+    "guests": [
+        {
+            "name": "유경곤/브랜드틴",
+            "car_type": "SUV",
+            "location": "관리실",
+            "reason": "방문",
+            "researcher": "뮤츠",
+            "timestamp": "2026-01-28T10:35:27.356363+09:00"
+        }
+    ],
     "sante_opt_out": false
 }
