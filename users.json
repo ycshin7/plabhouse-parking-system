@@ -156,5 +156,12 @@
         "car_number": "",
         "car_details": "",
         "last_parked_date": null
+    },
+    {
+        "name": "라임",
+        "car_type": "SEDAN",
+        "car_number": "",
+        "car_details": "",
+        "last_parked_date": null
     }
 ]
