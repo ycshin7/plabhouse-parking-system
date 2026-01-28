@@ -121,5 +121,12 @@
         "car_number": "",
         "car_details": "",
         "last_parked_date": null
+    },
+    {
+        "name": "릴라",
+        "car_type": "SEDAN",
+        "car_number": "",
+        "car_details": "",
+        "last_parked_date": null
     }
 ]
