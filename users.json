@@ -107,5 +107,12 @@
         "car_detail": "",
         "car_plate": "",
         "last_parked_date": null
+    },
+    {
+        "name": "뮤츠",
+        "car_type": "SEDAN",
+        "car_number": "",
+        "car_details": "",
+        "last_parked_date": null
     }
 ]
