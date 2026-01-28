@@ -170,5 +170,12 @@
         "car_number": "",
         "car_details": "",
         "last_parked_date": null
+    },
+    {
+        "name": "야무치",
+        "car_type": "SEDAN",
+        "car_number": "",
+        "car_details": "",
+        "last_parked_date": null
     }
 ]
