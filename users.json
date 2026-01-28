@@ -135,5 +135,12 @@
         "car_number": "",
         "car_details": "",
         "last_parked_date": null
+    },
+    {
+        "name": "쿠스",
+        "car_type": "SEDAN",
+        "car_number": "",
+        "car_details": "",
+        "last_parked_date": null
     }
 ]
