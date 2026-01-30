@@ -1,19 +1,6 @@
 {
-    "target_date": "2026-01-30",
-    "applicants": [
-        {
-            "name": "뉴진",
-            "timestamp": "2026-01-29T18:04:54.832645+09:00"
-        },
-        {
-            "name": "피치",
-            "timestamp": "2026-01-29T23:15:32.442731+09:00"
-        },
-        {
-            "name": "시안",
-            "timestamp": "2026-01-30T00:09:47.224913+09:00"
-        }
-    ],
+    "target_date": "2026-02-02",
+    "applicants": [],
     "guests": [],
     "sante_opt_out": false
 }
