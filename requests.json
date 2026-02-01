@@ -1,19 +1,6 @@
 {
     "target_date": "2026-02-02",
-    "applicants": [
-        {
-            "name": "키커",
-            "timestamp": "2026-02-01T18:06:39.302228+09:00"
-        },
-        {
-            "name": "시안",
-            "timestamp": "2026-02-01T21:22:19.673947+09:00"
-        },
-        {
-            "name": "뉴진",
-            "timestamp": "2026-02-01T23:40:30.619408+09:00"
-        }
-    ],
+    "applicants": [],
     "guests": [],
     "sante_opt_out": false
 }
