@@ -1,32 +1,6 @@
 {
     "target_date": "2026-02-04",
-    "applicants": [
-        {
-            "name": "시안",
-            "timestamp": "2026-02-03T18:18:46.087859+09:00"
-        },
-        {
-            "name": "뉴진",
-            "timestamp": "2026-02-03T18:28:54.478757+09:00"
-        },
-        {
-            "name": "피르",
-            "timestamp": "2026-02-03T18:44:09.559322+09:00"
-        },
-        {
-            "name": "뚜비",
-            "timestamp": "2026-02-04T07:07:28.402168+09:00"
-        }
-    ],
-    "guests": [
-        {
-            "name": "박수환 / 스타스포츠",
-            "car_type": "SUV",
-            "location": "관리실",
-            "reason": "방문",
-            "researcher": "뮤츠",
-            "timestamp": "2026-02-03T12:32:41.163951+09:00"
-        }
-    ],
+    "applicants": [],
+    "guests": [],
     "sante_opt_out": false
 }
