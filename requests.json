@@ -1,6 +1,11 @@
 {
     "target_date": "2026-02-04",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "시안",
+            "timestamp": "2026-02-03T18:18:46.087859+09:00"
+        }
+    ],
     "guests": [
         {
             "name": "박수환 / 스타스포츠",
