@@ -1,6 +1,15 @@
 {
     "target_date": "2026-02-04",
     "applicants": [],
-    "guests": [],
+    "guests": [
+        {
+            "name": "박수환 / 스타스포츠",
+            "car_type": "SUV",
+            "location": "관리실",
+            "reason": "방문",
+            "researcher": "뮤츠",
+            "timestamp": "2026-02-03T12:32:41.163951+09:00"
+        }
+    ],
     "sante_opt_out": false
 }
