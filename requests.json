@@ -1,7 +1,6 @@
 {
-    "target_date": "2026-02-05",
+    "target_date": "2026-02-06",
     "applicants": [],
     "guests": [],
-    "sante_opt_out": true,
-    "sante_status_updated_at": "2026-02-04T17:38:17.063802+09:00"
+    "sante_opt_out": false
 }
