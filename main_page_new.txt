@@ -1,0 +1,146 @@
+# Main page replacement - lines 340-501
+# This will replace the entire main page section
+
+# ============================================
+# MAIN PAGE
+# ============================================
+if st.session_state.page == "main":
+    # Header
+    day_names = ["월", "화", "수", "목", "금", "토", "일"]
+    day_of_week = day_names[target_date.weekday()]
+    
+    st.title("플랩하우스 주차")
+    st.markdown(f'<p class="subtitle">{target_date} ({day_of_week}) 주차 신청 중입니다.</p>', unsafe_allow_html=True)
+    
+    # ============================================
+    # 3 ACTION CARDS - HORIZONTAL LAYOUT (CLICKABLE)
+    # ============================================
+    
+    # Create 3 columns for horizontal layout
+    card_col1, card_col2, card_col3 = st.columns(3)
+    
+    # Card 1: Staff Application (CLICKABLE CARD)
+    with card_col1:
+        if st.button("내일 주차 신청\n\n리서처 주차 신청을 진행합니다", key="card_staff", use_container_width=True, type="secondary"):
+            st.session_state.show_staff_form = not st.session_state.show_staff_form
+            st.session_state.show_guest_form = False
+            st.rerun()
+    
+    # Card 2: Guest Application (CLICKABLE CARD)
+    with card_col2:
+        if st.button("내일 외부인 주차 신청\n\n방문 손님의 주차를 등록합니다", key="card_guest", use_container_width=True, type="secondary"):
+            st.session_state.show_guest_form = not st.session_state.show_guest_form
+            st.session_state.show_staff_form = False
+            st.rerun()
+    
+    # Card 3: Sante Option (CLICKABLE CARD)
+    with card_col3:
+        current_sante = requests_data["sante_opt_out"]
+        sante_title = "상떼 주차 함" if not current_sante else "상떼 주차 안 함"
+        sante_desc = "타워 2대 사용 가능" if not current_sante else "타워 3대 사용 가능"
+        
+        if st.button(f"{sante_title}\n\n{sante_desc}", key="card_sante", use_container_width=True, type="secondary"):
+            requests_data["sante_opt_out"] = not current_sante
+            save_json(REQUESTS_FILE, requests_data)
+            st.success("✅ 상떼 주차 설정이 변경되었습니다!")
+            st.rerun()
+    
+    # Forms appear right after the cards (before status)
+    
+    # Staff Form (if active)
+    if st.session_state.show_staff_form:
+        with st.container():
+            st.markdown("### 직원 주차 신청")
+            
+            if not users:
+                st.error("등록된 직원이 없습니다. 관리자 페이지에서 직원을 먼저 등록해주세요.")
+            else:
+                user_map = {f"{u['name']} ({u['car_type']})": u['name'] for u in users}
+                user_options = ["선택해주세요"] + list(user_map.keys())
+                
+                selected_option = st.selectbox("이름 선택", user_options, key="staff_selector")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("신청하기", type="primary", use_container_width=True):
+                        if selected_option == "선택해주세요":
+                            st.error("이름을 선택해주세요.")
+                        else:
+                            name = user_map[selected_option]
+                            if any(a["name"] == name for a in requests_data["applicants"]):
+                                st.error("이미 신청되었습니다.")
+                            else:
+                                requests_data["applicants"].append({
+                                    "name": name,
+                                    "timestamp": datetime.now().isoformat()
+                                })
+                                save_json(REQUESTS_FILE, requests_data)
+                                st.success(f"✅ {name}님의 주차 신청이 완료되었습니다!")
+                                st.session_state.show_staff_form = False
+                                st.rerun()
+                
+                with col2:
+                    if st.button("취소", use_container_width=True):
+                        st.session_state.show_staff_form = False
+                        st.rerun()
+    
+    # Guest Form (if active)
+    if st.session_state.show_guest_form:
+        with st.container():
+            st.markdown("### 외부인 주차 신청")
+            
+            g_car = st.radio("차종", ["SEDAN", "SUV"], horizontal=True, key="guest_car_type")
+            
+            if g_car == "SUV":
+                st.caption("ℹ️ SUV는 타워 주차가 불가능합니다.")
+                valid_locs = ["관리실(ADMIN)"]
+            else:
+                valid_locs = ["관리실(ADMIN)", "타워(TOWER)", "상관없음(ANY)"]
+            
+            g_loc = st.radio("주차 희망 위치", valid_locs, horizontal=True)
+            
+            col1, col2 = st.columns(2)
+            g_name = col1.text_input("손님 성함/정보 (필수)")
+            g_researcher = col2.text_input("등록 리서처 (필수)")
+            
+            g_reason = st.text_input("방문 목적 (필수)")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("등록하기", type="primary", use_container_width=True):
+                    if not g_name or not g_researcher or not g_reason:
+                        st.error("모든 필수 정보를 입력해주세요.")
+                    else:
+                        new_guest = {
+                            "name": g_name,
+                            "car_type": g_car,
+                            "location": g_loc,
+                            "reason": g_reason,
+                            "researcher": g_researcher,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        requests_data["guests"].append(new_guest)
+                        save_json(REQUESTS_FILE, requests_data)
+                        st.success(f"✅ {g_name}님의 외부인 주차가 등록되었습니다!")
+                        st.session_state.show_guest_form = False
+                        st.rerun()
+            
+            with col2:
+                if st.button("취소", use_container_width=True):
+                    st.session_state.show_guest_form = False
+                    st.rerun()
+    
+    # Status Summary - Below the forms
+    st.markdown("---")
+    
+    staff_count = len(requests_data["applicants"])
+    guest_count = len(requests_data["guests"])
+    sante_status = "안 함" if requests_data["sante_opt_out"] else "함"
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("리서처 신청 현황", f"{staff_count}명")
+    with col2:
+        st.metric("손님 신청 현황", f"{guest_count}명")
+    with col3:
+        st.metric("상떼 주차 여부", sante_status)

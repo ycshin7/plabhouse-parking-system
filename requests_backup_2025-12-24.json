@@ -1,0 +1,19 @@
+{
+    "target_date": "2025-12-24",
+    "applicants": [
+        {
+            "name": "시안",
+            "timestamp": "2025-12-23T21:56:25.692363"
+        },
+        {
+            "name": "피치",
+            "timestamp": "2025-12-23T21:57:01.135652"
+        },
+        {
+            "name": "루니",
+            "timestamp": "2025-12-23T21:57:34.727911"
+        }
+    ],
+    "guests": [],
+    "sante_opt_out": true
+}

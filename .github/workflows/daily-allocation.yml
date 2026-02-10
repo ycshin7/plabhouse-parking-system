@@ -1,0 +1,58 @@
+name: Daily Parking Allocation
+
+on:
+  schedule:
+    # TRIPLE-LAYER RELIABILITY SYSTEM
+    # Multiple scheduled times ensure execution even if one fails
+    # All times are for Monday-Friday (Sunday-Thursday 22:00-23:00 UTC)
+    
+    # Primary: 08:00 KST (Sunday-Thursday 23:00 UTC)
+    - cron: '00 23 * * 0-4'
+    
+    # Backup Layer 1: 08:10 KST (Sunday-Thursday 23:10 UTC)
+    - cron: '10 23 * * 0-4'
+    
+    # Backup Layer 2: 08:20 KST (Sunday-Thursday 23:20 UTC)
+    - cron: '20 23 * * 0-4'
+    
+    # Note: The script has built-in wait until 08:01 KST
+    # Note: Duplicate execution prevention ensures only one allocation per day
+  
+  repository_dispatch:
+    types: [daily-allocation]  # Trigger from external cron service (cron-job.org)
+  
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  allocate-and-notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow pushing changes
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install requests pytz
+    
+    - name: Run allocation and send Slack notification
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        set -e  # Exit immediately if any command fails
+        python auto_allocate.py
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Workflow failed! Check logs at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        # You can add additional notification logic here (e.g., send to a backup channel)
