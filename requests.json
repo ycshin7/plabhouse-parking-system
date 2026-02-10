@@ -1,6 +1,11 @@
 {
     "target_date": "2026-02-11",
-    "applicants": [],
+    "applicants": [
+        {
+            "name": "피치",
+            "timestamp": "2026-02-10T22:48:32.700757+09:00"
+        }
+    ],
     "guests": [],
     "sante_opt_out": false
 }
