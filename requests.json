@@ -1,20 +1,6 @@
 {
-    "target_date": "2026-02-13",
-    "applicants": [
-        {
-            "name": "시안",
-            "timestamp": "2026-02-12T19:03:00.248025+09:00"
-        },
-        {
-            "name": "피치",
-            "timestamp": "2026-02-12T23:34:51.573479+09:00"
-        },
-        {
-            "name": "뿌까",
-            "timestamp": "2026-02-13T00:42:06.248219+09:00"
-        }
-    ],
+    "target_date": "2026-02-16",
+    "applicants": [],
     "guests": [],
-    "sante_opt_out": true,
-    "sante_status_updated_at": "2026-02-12T23:40:29.394987+09:00"
+    "sante_opt_out": false
 }
