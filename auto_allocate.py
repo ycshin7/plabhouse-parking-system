@@ -318,10 +318,29 @@ def main():
     print(f"✅ No duplicate detected. Proceeding with allocation for {target_date_str}.")
     print("="*50 + "\n")
     
+<<<<<<< HEAD
     # Step 3: Wait logic REMOVED (2026-01-29)
     # We now run immediately at 08:00 to prevent race conditions with backup runs.
     # The schedule is staggered by 10 minutes, so no artificial wait is needed.
     pass
+=======
+    # Step 3: Wait until 08:01 KST if running early
+    target_hour = 8
+    target_minute = 1
+    
+    if now_kst.hour < target_hour or (now_kst.hour == target_hour and now_kst.minute < target_minute):
+        target_time = now_kst.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
+        wait_seconds = (target_time - now_kst).total_seconds()
+        
+        if wait_seconds > 0:
+            print(f"\n⏳ Running early. Waiting {wait_seconds:.0f} seconds until {target_hour}:{target_minute:02d} KST...")
+            while wait_seconds > 60:
+                time.sleep(60)
+                wait_seconds -= 60
+                print(f"   ... {wait_seconds / 60:.0f} minutes remaining")
+            time.sleep(wait_seconds)
+            print("⏰ It's time! Starting allocation.\n")
+>>>>>>> 7eee0cd1283e7e3e49962b5d7b5c1c1661d07652
     
     # Step 4: Fetch latest data from GitHub
     if not safe_git_pull():
