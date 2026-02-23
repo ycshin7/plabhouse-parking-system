@@ -1,29 +1,16 @@
 {
-  "target_date": "2026-02-24",
-  "applicants": [
-    {
-      "name": "뚜비",
-      "timestamp": "2026-02-23T04:59:27.475Z"
-    }
-  ],
-  "guests": [
-    {
-      "name": "fddsfsadf",
-      "car_type": "SEDAN",
-      "location": [
-        "상관없음"
-      ],
-      "timestamp": "2026-02-23T04:59:36.966Z"
-    },
-    {
-      "name": "e2222",
-      "car_type": "SUV",
-      "location": [
-        "관리실"
-      ],
-      "timestamp": "2026-02-23T04:59:50.935Z"
-    }
-  ],
-  "sante_opt_out": false,
-  "sante_status_updated_at": "2026-02-23T04:59:20.079Z"
+<<<<<<< HEAD
+    "target_date": "2026-02-16",
+    "applicants": [],
+=======
+    "target_date": "2026-02-11",
+    "applicants": [
+        {
+            "name": "뉴진",
+            "timestamp": "2026-02-10T18:03:01.040767+09:00"
+        }
+    ],
+>>>>>>> 7eee0cd1283e7e3e49962b5d7b5c1c1661d07652
+    "guests": [],
+    "sante_opt_out": false
 }
