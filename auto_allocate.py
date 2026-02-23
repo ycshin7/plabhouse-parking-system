@@ -283,128 +283,83 @@ def safe_git_commit_push(commit_message):
 
 def main():
     """Main execution function."""
-    log_execution_state()
-    
-    # Step 1: Validate environment
-    success, msg = validate_environment()
-    if not success:
-        print(f"\n❌ FATAL ERROR: {msg}")
-        sys.exit(1)
-    
-    # Step 2: Check if today is weekend (skip execution)
-    now_kst = get_kst_time()
-    if now_kst.weekday() in [5, 6]:  # Saturday or Sunday
-        print(f"😴 It's {now_kst.strftime('%A')}. Skipping auto-allocation.")
-        print("   (Weekend applications will accumulate for Monday)")
-        return
-    
-    # Step 2.5: DUPLICATE EXECUTION PREVENTION
-    # Load history early to check if today's allocation already exists
-    print("\n" + "="*50)
-    print("🔍 CHECKING FOR DUPLICATE EXECUTION")
-    print("="*50)
-    
-    history_preliminary = load_json(HISTORY_FILE, [])
-    target_date_str = str(get_target_date())
-    existing_entry = next((h for h in history_preliminary if h["date"] == target_date_str), None)
-    
-    if existing_entry and existing_entry.get("slack_notified", False):
-        print(f"✅ Allocation for {target_date_str} already exists and notification was sent.")
-        print("   This is likely a duplicate execution from multiple triggers.")
-        print("   Exiting gracefully to prevent duplicate processing.")
-        print("="*50 + "\n")
-        return
-    
-    print(f"✅ No duplicate detected. Proceeding with allocation for {target_date_str}.")
-    print("="*50 + "\n")
-    
-<<<<<<< HEAD
-    # Step 3: Wait logic REMOVED (2026-01-29)
-    # We now run immediately at 08:00 to prevent race conditions with backup runs.
-    # The schedule is staggered by 10 minutes, so no artificial wait is needed.
-    pass
-=======
-    # Step 3: Wait until 08:01 KST if running early
-    target_hour = 8
-    target_minute = 1
-    
-    if now_kst.hour < target_hour or (now_kst.hour == target_hour and now_kst.minute < target_minute):
-        target_time = now_kst.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
-        wait_seconds = (target_time - now_kst).total_seconds()
+    try:
+        log_execution("START", "Allocation script started")
         
-        if wait_seconds > 0:
-            print(f"\n⏳ Running early. Waiting {wait_seconds:.0f} seconds until {target_hour}:{target_minute:02d} KST...")
-            while wait_seconds > 60:
-                time.sleep(60)
-                wait_seconds -= 60
-                print(f"   ... {wait_seconds / 60:.0f} minutes remaining")
-            time.sleep(wait_seconds)
-            print("⏰ It's time! Starting allocation.\n")
->>>>>>> 7eee0cd1283e7e3e49962b5d7b5c1c1661d07652
-    
-    # Step 4: Fetch latest data from GitHub
-    if not safe_git_pull():
-        error_msg = "⚠️ **긴급: GitHub 데이터 동기화 실패**\n\n자동 배정을 진행할 수 없습니다!\n수동으로 배정해주세요."
-        send_slack_with_retry(error_msg)
-        print("\n❌ FATAL ERROR: Git pull failed. Cannot proceed with allocation.")
-        sys.exit(1)
-    
-    # Step 5: Reload data after git pull
-    print("📂 Loading data files...")
-    users = load_json(USERS_FILE, [])
-    history = load_json(HISTORY_FILE, [])
-    requests_data = load_json(REQUESTS_FILE, {
-        "target_date": "",
-        "applicants": [],
-        "guests": [],
-        "sante_opt_out": False
-    })
-    
-    target_date = get_target_date()
-    today_str = str(target_date)
-    
-    # Debug: Log request data
-    print(f"\n📋 Request Data Summary:")
-    print(f"   target_date: {requests_data.get('target_date')}")
-    print(f"   applicants: {len(requests_data.get('applicants', []))} entries")
-    print(f"   guests: {len(requests_data.get('guests', []))} entries")
-    print(f"   sante_opt_out: {requests_data.get('sante_opt_out')}")
-    
-    if requests_data.get('applicants'):
-        print(f"\n   📝 Applicants detail:")
-        for i, app in enumerate(requests_data['applicants']):
-            print(f"      [{i+1}] {app}")
-    
-    if requests_data.get('guests'):
-        print(f"\n   🎫 Guests detail:")
-        for i, g in enumerate(requests_data['guests']):
-            print(f"      [{i+1}] {g}")
-    print()
-    
-    # Step 6: Check if already allocated
-    history_today = next((h for h in history if h["date"] == today_str), None)
-    if history_today:
-        # Check if Slack notification was sent
-        if not history_today.get("slack_notified", True):
-            print(f"⚠️ Allocation for {today_str} exists, but Slack notification was not sent.")
-            print("   Attempting to resend notification...")
+        # CRITICAL: Acquire lock first
+        if not acquire_lock():
+            log_execution("LOCKED", "Exiting due to existing lock")
+            return
             
-            # Reconstruct Slack message from history
-            day_names = ["월", "화", "수", "목", "금", "토", "일"]
-            target_weekday = day_names[target_date.weekday()]
-            
-            admin_capacity = 1
-            tower_capacity = 3 if requests_data.get("sante_opt_out") else 2
-            admin_occupied = len(history_today.get("admin", []))
-            tower_occupied = len(history_today.get("tower", []))
-            
-            def strip_time(name_str):
-                parts = name_str.rsplit(' ', 1)
-                if len(parts) == 2 and (':' in parts[1] or parts[1] == '수동입력'):
-                    return parts[0]
-                return name_str
-            
-            slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과** (재전송)
+        log_execution_state()
+        
+        # Step 1: Validate environment
+        success, msg = validate_environment()
+        if not success:
+            log_execution("ERROR", f"Env validation failed: {msg}")
+            sys.exit(1)
+        
+        # Step 2: Check if today is weekend (skip execution)
+        now_kst = get_kst_time()
+        if now_kst.weekday() in [5, 6]:  # Saturday or Sunday
+            log_execution("SKIP", f"Weekend ({now_kst.strftime('%A')})")
+            return
+        
+        # Step 2.5: DUPLICATE EXECUTION PREVENTION (History Check)
+        history_preliminary = load_json(HISTORY_FILE, [])
+        target_date_str = str(get_target_date())
+        existing_entry = next((h for h in history_preliminary if h["date"] == target_date_str), None)
+        
+        if existing_entry and existing_entry.get("slack_notified", False):
+            log_execution("DUPLICATE", f"Already notified for {target_date_str}")
+            return
+        
+        log_execution("INFO", f"Proceeding with allocation for {target_date_str}")
+        
+        # Step 3: Wait logic REMOVED (2026-01-29)
+        pass
+        
+        # Step 4: Fetch latest data from GitHub
+        if not safe_git_pull():
+            error_msg = "⚠️ **긴급: GitHub 데이터 동기화 실패**\n\n자동 배정을 진행할 수 없습니다!\n수동으로 배정해주세요."
+            send_slack_with_retry(error_msg)
+            log_execution("ERROR", "Git pull failed")
+            sys.exit(1)
+        
+        # Step 5: Reload data after git pull
+        log_execution("INFO", "Loading data files...")
+        users = load_json(USERS_FILE, [])
+        history = load_json(HISTORY_FILE, [])
+        requests_data = load_json(REQUESTS_FILE, {
+            "target_date": "",
+            "applicants": [],
+            "guests": [],
+            "sante_opt_out": False
+        })
+        
+        target_date = get_target_date()
+        today_str = str(target_date)
+        
+        # Step 6: Check if already allocated
+        history_today = next((h for h in history if h["date"] == today_str), None)
+        if history_today:
+            if not history_today.get("slack_notified", True):
+                log_execution("RETRY", f"Allocation for {today_str} exists, but Slack not sent. Retrying...")
+                
+                day_names = ["월", "화", "수", "목", "금", "토", "일"]
+                target_weekday = day_names[target_date.weekday()]
+                admin_capacity = 1
+                tower_capacity = 3 if requests_data.get("sante_opt_out") else 2
+                admin_occupied = len(history_today.get("admin", []))
+                tower_occupied = len(history_today.get("tower", []))
+                
+                def strip_time(name_str):
+                    parts = name_str.rsplit(' ', 1)
+                    if len(parts) == 2 and (':' in parts[1] or parts[1] == '수동입력'):
+                        return parts[0]
+                    return name_str
+                
+                slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과** (재전송)
 
 🅿️ **주차 공간 현황**
 • 전체: {admin_occupied + tower_occupied}/{admin_capacity + tower_capacity}
@@ -412,290 +367,201 @@ def main():
 • 타워: {tower_occupied}/{tower_capacity}
 
 🏢 **관리실 배정**"""
-            
-            if history_today.get("admin"):
-                for name in history_today["admin"]:
-                    slack_msg += f"\n• {strip_time(name)}"
-            else:
-                slack_msg += "\n• (배정 없음)"
-            
-            slack_msg += "\n\n🅿️ **타워 배정**"
-            if history_today.get("tower"):
-                for name in history_today["tower"]:
-                    slack_msg += f"\n• {strip_time(name)}"
-            else:
-                slack_msg += "\n• (배정 없음)"
-            
-            if history_today.get("wait"):
-                slack_msg += "\n\n⏳ **대기 인원**"
-                for name in history_today["wait"]:
-                    slack_msg += f"\n• {strip_time(name)}"
-            
-            if send_slack_with_retry(slack_msg):
-                history_today["slack_notified"] = True
-                save_json(HISTORY_FILE, history)
-                safe_git_commit_push(f"Update: Slack notification sent for {today_str}")
-                print(f"✅ Slack notification resent successfully!")
-            else:
-                print(f"❌ Failed to resend Slack notification!")
-            
-            return
-        else:
-            print(f"✅ Allocation for {today_str} already exists and notification was sent. Skipping.")
-            return
-    
-    # Step 7: Check if there are applicants
-    if not requests_data.get("applicants") and not requests_data.get("guests"):
-        print("ℹ️ No applicants found. Skipping allocation.")
-        return
-    
-    print(f"\n👥 Found {len(requests_data.get('applicants', []))} staff applicants")
-    print(f"🎫 Found {len(requests_data.get('guests', []))} guest applicants")
-    
-    # Step 8: Allocation logic
-    admin_slots = 1
-    tower_slots = 3 if requests_data.get("sante_opt_out") else 2
-    
-    candidates = []
-    
-    # Collect staff candidates
-    for app in requests_data.get("applicants", []):
-        if isinstance(app, str):
-            u_name = app
-            ts = datetime.min
-            u_time = "00:00"
-        else:
-            u_name = app["name"]
-            # KST ENFORCEMENT: Handle both Naive (old UTC) and Aware (new KST)
-            try:
-                dt_raw = datetime.fromisoformat(app["timestamp"])
-                if dt_raw.tzinfo:
-                    dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                
+                if history_today.get("admin"):
+                    for name in history_today["admin"]:
+                        slack_msg += f"\n• {strip_time(name)}"
                 else:
-                    dt_kst = dt_raw + timedelta(hours=9)
-                ts = dt_kst.replace(tzinfo=None)
-            except:
-                ts = datetime.min
-            
-            u_time = ts.strftime("%H:%M")
-        
-        user_obj = next((u for u in users if u["name"] == u_name), None)
-        
-        if user_obj:
-            c_type = user_obj["car_type"]
-            l_parked = user_obj.get("last_parked_date") or ""
-        else:
-            c_type = "SEDAN"
-            l_parked = "1900-01-01"
-        
-        candidates.append({
-            "type": "staff",
-            "name": u_name,
-            "car_type": c_type,
-            "last_parked": l_parked,
-            "timestamp": ts,
-            "display_name": f"{u_name} ({c_type}) {u_time}"
-        })
-        print(f"  ✅ Staff: {u_name} ({c_type}) - last_parked: {l_parked}, time: {u_time}")
-    
-    # Collect guest candidates
-    for g in requests_data.get("guests", []):
-        if "timestamp" in g:
-            try:
-                dt_raw = datetime.fromisoformat(g["timestamp"])
-                if dt_raw.tzinfo:
-                    dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                    slack_msg += "\n• (배정 없음)"
+                
+                slack_msg += "\n\n🅿️ **타워 배정**"
+                if history_today.get("tower"):
+                    for name in history_today["tower"]:
+                        slack_msg += f"\n• {strip_time(name)}"
                 else:
-                    dt_kst = dt_raw + timedelta(hours=9)
-                ts = dt_kst.replace(tzinfo=None)
-            except:
+                    slack_msg += "\n• (배정 없음)"
+                
+                if history_today.get("wait"):
+                    slack_msg += "\n\n⏳ **대기 인원**"
+                    for name in history_today["wait"]:
+                        slack_msg += f"\n• {strip_time(name)}"
+                
+                if send_slack_with_retry(slack_msg):
+                    history_today["slack_notified"] = True
+                    save_json(HISTORY_FILE, history)
+                    safe_git_commit_push(f"Update: Slack notification sent for {today_str}")
+                    log_execution("SUCCESS", "Slack notification resent successfully")
+                else:
+                    log_execution("ERROR", "Failed to resend Slack notification")
+                return
+            else:
+                log_execution("DONE", f"Already allocated and notified for {today_str}")
+                return
+        
+        # Step 7: Check if there are applicants
+        if not requests_data.get("applicants") and not requests_data.get("guests"):
+            log_execution("SKIP", "No applicants found")
+            return
+        
+        # Step 8: Allocation logic
+        admin_slots = 1
+        tower_slots = 3 if requests_data.get("sante_opt_out") else 2
+        candidates = []
+        
+        for app in requests_data.get("applicants", []):
+            if isinstance(app, str):
+                u_name = app
                 ts = datetime.min
-            time_str = ts.strftime("%H:%M")
-        else:
-            ts = datetime.min
-            time_str = "00:00"
+                u_time = "00:00"
+            else:
+                u_name = app["name"]
+                try:
+                    dt_raw = datetime.fromisoformat(app["timestamp"])
+                    if dt_raw.tzinfo:
+                        dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                    else:
+                        dt_kst = dt_raw + timedelta(hours=9)
+                    ts = dt_kst.replace(tzinfo=None)
+                except:
+                    ts = datetime.min
+                u_time = ts.strftime("%H:%M")
+            
+            user_obj = next((u for u in users if u["name"] == u_name), None)
+            c_type = user_obj["car_type"] if user_obj else "SEDAN"
+            l_parked = (user_obj.get("last_parked_date") if user_obj else "") or "1900-01-01"
+            
+            candidates.append({
+                "type": "staff",
+                "name": u_name,
+                "car_type": c_type,
+                "last_parked": l_parked,
+                "timestamp": ts,
+                "display_name": f"{u_name} ({c_type}) {u_time}"
+            })
         
-        candidates.append({
-            "type": "guest",
-            "name": g["name"],
-            "car_type": g["car_type"],
-            "location": g.get("location", ["상관없음"]),
-            "timestamp": ts,
-            "display_name": f"{g['name']} ({g['car_type']}) {time_str}"
-        })
-        print(f"  ✅ Guest: {g['name']} ({g['car_type']}) - location: {g.get('location', 'N/A')}, time: {time_str}")
-    
-    # Sort candidates
-    staff_c = [c for c in candidates if c["type"] == "staff"]
-    guest_c = [c for c in candidates if c["type"] == "guest"]
-    
-    staff_c.sort(key=lambda x: (
-        x["last_parked"] if x["last_parked"] else "1900-01-01",
-        x["timestamp"]
-    ))
-    guest_c.sort(key=lambda x: x["timestamp"])
-    
-    # Allocate
-    result_admin = []
-    result_tower = []
-    result_wait = []
-    
-    # 1. Guests first (high priority)
-    for g in guest_c:
-        assigned = False
-        loc = g.get("location", ["상관없음"])
+        for g in requests_data.get("guests", []):
+            if "timestamp" in g:
+                try:
+                    dt_raw = datetime.fromisoformat(g["timestamp"])
+                    if dt_raw.tzinfo:
+                        dt_kst = dt_raw.astimezone(pytz.timezone('Asia/Seoul'))
+                    else:
+                        dt_kst = dt_raw + timedelta(hours=9)
+                    ts = dt_kst.replace(tzinfo=None)
+                except:
+                    ts = datetime.min
+                time_str = ts.strftime("%H:%M")
+            else:
+                ts = datetime.min
+                time_str = "00:00"
+            
+            candidates.append({
+                "type": "guest",
+                "name": g["name"],
+                "car_type": g["car_type"],
+                "location": g.get("location", ["상관없음"]),
+                "timestamp": ts,
+                "display_name": f"{g['name']} ({g['car_type']}) {time_str}"
+            })
         
-        if "관리실" in loc:
-            if admin_slots > 0:
-                result_admin.append(g["display_name"])
-                admin_slots -= 1
-                assigned = True
-        elif "타워" in loc:
-            if tower_slots > 0:
-                result_tower.append(g["display_name"])
-                tower_slots -= 1
-                assigned = True
-        else:
-            if tower_slots > 0:
-                result_tower.append(g["display_name"])
-                tower_slots -= 1
-                assigned = True
+        staff_c = sorted([c for c in candidates if c["type"] == "staff"], key=lambda x: (x["last_parked"], x["timestamp"]))
+        guest_c = sorted([c for c in candidates if c["type"] == "guest"], key=lambda x: x["timestamp"])
+        
+        result_admin, result_tower, result_wait = [], [], []
+        
+        for g in guest_c:
+            loc = g.get("location", ["상관없음"])
+            if "관리실" in loc and admin_slots > 0:
+                result_admin.append(g["display_name"]); admin_slots -= 1
+            elif "타워" in loc and tower_slots > 0:
+                result_tower.append(g["display_name"]); tower_slots -= 1
+            elif tower_slots > 0:
+                result_tower.append(g["display_name"]); tower_slots -= 1
             elif admin_slots > 0:
-                result_admin.append(g["display_name"])
-                admin_slots -= 1
-                assigned = True
+                result_admin.append(g["display_name"]); admin_slots -= 1
+            else:
+                result_wait.append(g["display_name"])
         
-        if not assigned:
-            result_wait.append(g["display_name"])
-    
-    # 2. Staff second
-    for s in staff_c:
-        assigned = False
-        if s["car_type"] == "SUV":
-            if admin_slots > 0:
-                result_admin.append(s["display_name"])
-                admin_slots -= 1
-                assigned = True
-        else:
-            if tower_slots > 0:
-                result_tower.append(s["display_name"])
-                tower_slots -= 1
-                assigned = True
-            elif admin_slots > 0:
-                result_admin.append(s["display_name"])
-                admin_slots -= 1
-                assigned = True
+        for s in staff_c:
+            if s["car_type"] == "SUV":
+                if admin_slots > 0:
+                    result_admin.append(s["display_name"]); admin_slots -= 1
+                else:
+                    result_wait.append(s["display_name"])
+            else:
+                if tower_slots > 0:
+                    result_tower.append(s["display_name"]); tower_slots -= 1
+                elif admin_slots > 0:
+                    result_admin.append(s["display_name"]); admin_slots -= 1
+                else:
+                    result_wait.append(s["display_name"])
         
-        if not assigned:
-            result_wait.append(s["display_name"])
-    
-    # Update last_parked_date for allocated staff
-    for name in result_admin + result_tower:
-        base_name = name.split(" (")[0]
-        for u in users:
-            if u["name"] == base_name:
-                u["last_parked_date"] = today_str
-    
-    save_json(USERS_FILE, users)
-    
-    # Save to history with slack_notified flag
-    history_entry = {
-        "date": today_str,
-        "admin": result_admin,
-        "tower": result_tower,
-        "wait": result_wait,
-        "slack_notified": False,
-        "created_at": datetime.now(pytz.timezone('Asia/Seoul')).isoformat()
-    }
-    
-    # Remove existing entry and add new one
-    history = [h for h in history if h["date"] != today_str]
-    history.append(history_entry)
-    history.sort(key=lambda x: x["date"], reverse=True)
-    save_json(HISTORY_FILE, history)
-    
-    admin_capacity = 1
-    tower_capacity = 3 if requests_data.get("sante_opt_out") else 2
-    
-    print(f"\n✅ Allocation completed:")
-    print(f"   🏢 Admin: {len(result_admin)}/{admin_capacity}")
-    print(f"   🅿️ Tower: {len(result_tower)}/{tower_capacity}")
-    print(f"   ⏳ Wait: {len(result_wait)}")
-    
-    # Prepare Slack message
-    day_names = ["월", "화", "수", "목", "금", "토", "일"]
-    target_weekday = day_names[target_date.weekday()]
-    
-    admin_occupied = len(result_admin)
-    tower_occupied = len(result_tower)
-    admin_remaining = admin_capacity - admin_occupied
-    tower_remaining = tower_capacity - tower_occupied
-    total_capacity = admin_capacity + tower_capacity
-    total_occupied = admin_occupied + tower_occupied
-    total_remaining = total_capacity - total_occupied
-    
-    def strip_time(name_str):
-        parts = name_str.rsplit(' ', 1)
-        if len(parts) == 2 and (':' in parts[1] or parts[1] == '수동입력'):
-            return parts[0]
-        return name_str
-    
-    slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과**
+        for name in result_admin + result_tower:
+            base_name = name.split(" (")[0]
+            for u in users:
+                if u["name"] == base_name:
+                    u["last_parked_date"] = today_str
+        
+        save_json(USERS_FILE, users)
+        
+        history_entry = {
+            "date": today_str,
+            "admin": result_admin,
+            "tower": result_tower,
+            "wait": result_wait,
+            "slack_notified": False,
+            "created_at": datetime.now(pytz.timezone('Asia/Seoul')).isoformat()
+        }
+        history = [h for h in load_json(HISTORY_FILE, []) if h["date"] != today_str]
+        history.append(history_entry)
+        history.sort(key=lambda x: x["date"], reverse=True)
+        save_json(HISTORY_FILE, history)
+        
+        # Slack notification
+        day_names = ["월", "화", "수", "목", "금", "토", "일"]
+        target_weekday = day_names[target_date.weekday()]
+        admin_capacity = 1
+        tower_capacity = 3 if requests_data.get("sante_opt_out") else 2
+        total_capacity = admin_capacity + tower_capacity
+        total_occ = len(result_admin) + len(result_tower)
+        
+        def strip_time(name_str):
+            parts = name_str.rsplit(' ', 1)
+            return parts[0] if len(parts) == 2 and (':' in parts[1] or parts[1] == '수동입력') else name_str
+
+        slack_msg = f"""📅 **{today_str} ({target_weekday}) 주차 배정 결과**
 
 🅿️ **주차 공간 현황**
-• 전체: {total_occupied}/{total_capacity} (남은 공간: {total_remaining})
-• 관리실: {admin_occupied}/{admin_capacity} (남은 공간: {admin_remaining})
-• 타워: {tower_occupied}/{tower_capacity} (남은 공간: {tower_remaining})
+• 전체: {total_occ}/{total_capacity} (남은 공간: {total_capacity - total_occ})
+• 관리실: {len(result_admin)}/{admin_capacity}
+• 타워: {len(result_tower)}/{tower_capacity}
 
 🏢 **관리실 배정**"""
-    
-    if result_admin:
-        for name in result_admin:
-            slack_msg += f"\n• {strip_time(name)}"
-    else:
-        slack_msg += "\n• (배정 없음)"
-    
-    slack_msg += "\n\n🅿️ **타워 배정**"
-    if result_tower:
-        for name in result_tower:
-            slack_msg += f"\n• {strip_time(name)}"
-    else:
-        slack_msg += "\n• (배정 없음)"
-    
-    if result_wait:
-        slack_msg += "\n\n⏳ **대기 인원** (우선순위에서 밀림)"
-        for name in result_wait:
-            slack_msg += f"\n• {strip_time(name)}"
-    
-    # Send to Slack with retry
-    if send_slack_with_retry(slack_msg):
-        # Update history with successful notification
-        history_entry["slack_notified"] = True
-        # Update the history list (find and update the entry we just added)
-        for h in history:
-            if h["date"] == today_str:
-                h["slack_notified"] = True
-                break
-        save_json(HISTORY_FILE, history)
-        print("\n✅ Slack notification sent and recorded!")
-    else:
-        print("\n❌ All Slack notification attempts failed!")
-        print("   slack_notified flag remains False in history.")
-        print("   Notification can be retried on next run.")
-    
-    # Reset requests for next day
-    print("\n🧹 Resetting requests for next day...")
-    requests_data["applicants"] = []
-    requests_data["guests"] = []
-    save_json(REQUESTS_FILE, requests_data)
-    
-    # Commit changes to GitHub
-    if not safe_git_commit_push(f"Auto-update: Parking allocation for {today_str}"):
-        print("⚠️ Warning: Failed to commit changes to GitHub")
-        print("   (Allocation is saved locally, but may not sync)")
-    
-    print("\n🎉 Automation completed successfully!")
-    print("="*50 + "\n")
+        slack_msg += "".join([f"\n• {strip_time(n)}" for n in result_admin]) if result_admin else "\n• (배정 없음)"
+        slack_msg += "\n\n🅿️ **타워 배정**"
+        slack_msg += "".join([f"\n• {strip_time(n)}" for n in result_tower]) if result_tower else "\n• (배정 없음)"
+        if result_wait:
+            slack_msg += "\n\n⏳ **대기 인원** (우선순위에서 밀림)"
+            slack_msg += "".join([f"\n• {strip_time(n)}" for n in result_wait])
+
+        if send_slack_with_retry(slack_msg):
+            history_entry["slack_notified"] = True
+            for h in history:
+                if h["date"] == today_str: h["slack_notified"] = True; break
+            save_json(HISTORY_FILE, history)
+            log_execution("SUCCESS", "Slack notification sent")
+        else:
+            log_execution("ERROR", "Slack notification failed")
+        
+        # Reset and Push
+        requests_data["applicants"] = []; requests_data["guests"] = []
+        save_json(REQUESTS_FILE, requests_data)
+        safe_git_commit_push(f"Auto-update: Parking allocation for {today_str}")
+        log_execution("SUCCESS", "Automation completed")
+        
+    finally:
+        release_lock()
+        log_execution("END", "Script completed")
 
 if __name__ == "__main__":
     try:
