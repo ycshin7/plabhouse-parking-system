@@ -1,0 +1,29 @@
+{
+  "target_date": "2026-02-24",
+  "applicants": [
+    {
+      "name": "뚜비",
+      "timestamp": "2026-02-23T04:59:27.475Z"
+    }
+  ],
+  "guests": [
+    {
+      "name": "fddsfsadf",
+      "car_type": "SEDAN",
+      "location": [
+        "상관없음"
+      ],
+      "timestamp": "2026-02-23T04:59:36.966Z"
+    },
+    {
+      "name": "e2222",
+      "car_type": "SUV",
+      "location": [
+        "관리실"
+      ],
+      "timestamp": "2026-02-23T04:59:50.935Z"
+    }
+  ],
+  "sante_opt_out": false,
+  "sante_status_updated_at": "2026-02-23T04:59:20.079Z"
+}

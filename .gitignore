@@ -1,0 +1,12 @@
+# 의존성
+node_modules/
+.next/
+out/
+
+# 환경변수 (절대 커밋하지 마세요!)
+.env.local
+.env*.local
+
+# 빌드 아티팩트
+*.log
+.DS_Store

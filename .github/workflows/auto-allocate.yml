@@ -1,0 +1,38 @@
+name: 🅿️ 자동 주차 배정 (Vercel)
+
+on:
+  schedule:
+    # 매일 00:01 KST (= 15:01 UTC 전날)에 실행
+    # 월~금 00:01 KST에 배정 결과 발표
+    # 일~목 15:01 UTC
+    - cron: '1 15 * * 0-4'
+  workflow_dispatch:
+
+jobs:
+  auto-allocate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 배정 API 호출
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.VERCEL_APP_URL }}/api/allocate" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"adminKey\": \"${{ secrets.ADMIN_KEY }}\",
+              \"targetDate\": \"$(TZ=Asia/Seoul date +%Y-%m-%d)\"
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "Status Code: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ 배정 완료!"
+          elif echo "$BODY" | grep -q "already exists"; then
+            echo "ℹ️ 이미 배정 완료된 날짜입니다. (정상)"
+          else
+            echo "❌ 배정 실패: $BODY"
+            exit 1
+          fi
