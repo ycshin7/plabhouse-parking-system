@@ -25,6 +25,43 @@ import requests
 USERS_FILE = "users.json"
 REQUESTS_FILE = "requests.json"
 HISTORY_FILE = "history.json"
+LOCK_FILE = "/tmp/auto_allocate.lock"
+
+
+def log_execution(state, message):
+    """Log execution state with timestamp."""
+    now_kst = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
+    print(f"[{now_kst}] [{state}] {message}")
+
+
+def acquire_lock():
+    """Acquire execution lock to prevent concurrent runs."""
+    if os.path.exists(LOCK_FILE):
+        try:
+            lock_age = time.time() - os.path.getmtime(LOCK_FILE)
+            if lock_age > 600:  # 10 minutes - stale lock
+                print("⚠️ Stale lock found, removing...")
+                os.remove(LOCK_FILE)
+            else:
+                print("❌ Lock file exists, another instance may be running")
+                return False
+        except Exception:
+            pass
+    try:
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+        return True
+    except Exception:
+        return True  # In CI environment, proceed anyway
+
+
+def release_lock():
+    """Release execution lock."""
+    try:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except Exception:
+        pass
 
 def load_json(file_path, default_data):
     """Load JSON data from file with error handling."""

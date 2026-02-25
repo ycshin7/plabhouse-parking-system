@@ -4,17 +4,17 @@ on:
   schedule:
     # TRIPLE-LAYER RELIABILITY SYSTEM
     # Multiple scheduled times ensure execution even if one fails
-    # All times are for Monday-Friday (Sunday-Thursday 23:00-23:20 UTC)
-    
-    # Primary: 08:00 KST (Sunday-Thursday 23:00 UTC)
-    - cron: '00 23 * * 0-4'
-    
-    # Backup Layer 1: 08:10 KST (Sunday-Thursday 23:10 UTC)
-    - cron: '10 23 * * 0-4'
-    
-    # Backup Layer 2: 08:20 KST (Sunday-Thursday 23:20 UTC)
-    - cron: '20 23 * * 0-4'
-    
+    # All times are for Monday-Friday (Sunday-Thursday at 15:00-15:20 UTC = 00:00-00:20 KST)
+
+    # Primary: 00:00 KST (Sunday-Thursday 15:00 UTC)
+    - cron: '0 15 * * 0-4'
+
+    # Backup Layer 1: 00:10 KST (Sunday-Thursday 15:10 UTC)
+    - cron: '10 15 * * 0-4'
+
+    # Backup Layer 2: 00:20 KST (Sunday-Thursday 15:20 UTC)
+    - cron: '20 15 * * 0-4'
+
     # Note: Duplicate execution prevention ensures only one allocation per day
   
   repository_dispatch:
