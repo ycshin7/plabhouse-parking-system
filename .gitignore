@@ -10,3 +10,4 @@ out/
 # 빌드 아티팩트
 *.log
 .DS_Store
+.vercel
