@@ -1,36 +1,39 @@
-# 🚗 Parking System (주차 배정 시스템)
+# Parking System (주차 배정 시스템)
 
-이 프로젝트는 Streamlit으로 제작된 주차 배정 및 관리 시스템입니다.
+플랩하우스 주차 자동 배정 시스템입니다.
 
-## 🛠️ 배포 가이드 (Streamlit Community Cloud)
+## 구조
 
-이 앱은 **Streamlit Community Cloud**를 통해 무료로 가장 쉽게 배포할 수 있습니다.
-(Vercel은 Streamlit의 실시간 통신(Websocket)을 완벽하게 지원하지 않아 권장하지 않습니다.)
+- **프론트엔드**: Vercel 배포 (`https://plabhouse-parking-system.vercel.app/`)
+- **자동 배정**: GitHub Actions (`auto_allocate.py`) — 매일 자정(KST) 실행
+- **알림**: Slack Webhook으로 배정 결과 자동 발송
 
-### 1단계: GitHub에 코드 올리기
-1. GitHub에 로그인하고 **New Repository**를 만듭니다.
-2. 이 폴더의 모든 파일(`app.py`, `requirements.txt`, `users.json` 등)을 업로드합니다.
+## 자동 배정 흐름
 
-### 2단계: Streamlit Cloud 배포
-1. [share.streamlit.io](https://share.streamlit.io/)에 접속하여 GitHub 계정으로 로그인합니다.
-2. **"New app"** 버튼을 클릭합니다.
-3. 방금 만든 **GitHub Repository**를 선택합니다.
-4. **Main file path**에 `app.py`가 입력되어 있는지 확인합니다.
-5. **"Deploy!"** 버튼을 누르면 끝! 🚀
+1. 사용자가 웹에서 주차 신청 → `requests.json`에 저장
+2. 매일 자정 GitHub Actions가 `auto_allocate.py` 실행
+3. 배정 알고리즘 수행 (게스트 우선, 직원은 last_parked_date 순)
+4. 결과를 `history.json`에 저장, Slack으로 알림 발송
+5. `requests.json` 초기화, GitHub에 커밋/푸시
 
----
+## 배정 규칙
 
-## ⚠️ 중요: 데이터 저장 관련 주의사항
+- **관리실**: 1자리 (SUV 우선)
+- **타워**: 2자리 (sante_opt_out 시 3자리)
+- **우선순위**: 마지막 주차일이 오래된 순 → 신청 시간 빠른 순
 
-현재 이 앱은 데이터를 `json` 파일(`users.json`, `history.json` 등)에 저장하고 있습니다.
-**클라우드 배포 환경(Streamlit Cloud, Vercel 등)에서는 앱이 재시작될 때마다 이 파일들이 초기화됩니다.**
+## 주요 파일
 
-즉, 배포 후 직원을 등록하거나 주차 신청을 해도, **앱이 절전 모드에 들어가거나 업데이트되면 데이터가 사라질 수 있습니다.**
+| 파일 | 설명 |
+|------|------|
+| `auto_allocate.py` | 자동 배정 + Slack 알림 스크립트 |
+| `.github/workflows/daily-allocation.yml` | GitHub Actions 스케줄러 (자정 KST) |
+| `users.json` | 직원 정보 (이름, 차종, 마지막 주차일) |
+| `requests.json` | 당일 주차 신청 목록 |
+| `history.json` | 배정 이력 |
 
-데이터를 영구적으로 저장하려면 **Google Sheets**나 **데이터베이스**를 연동해야 합니다.
-(현재 버전은 로컬 실행 또는 데모 목적으로 적합합니다.)
+## GitHub Secrets 설정
 
-## 📦 설치 패키지
-- streamlit
-- pandas
-- openpyxl
+| Secret | 설명 |
+|--------|------|
+| `SLACK_WEBHOOK_URL` | Slack Incoming Webhook URL |
