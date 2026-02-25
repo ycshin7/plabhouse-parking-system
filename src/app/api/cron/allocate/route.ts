@@ -138,18 +138,18 @@ export async function GET(request: NextRequest) {
             guests: [],
         };
 
-        // 동시 저장 (단일 저장으로 SHA 이슈 해결)
-        const [historySaved, requestsSaved, usersSaved] = await Promise.all([
-            saveToGithub('history.json', newHistory, historySha || '', `[cron] 자동 배정: ${today}`),
-            saveToGithub('requests.json', updatedRequests, requestsSha || '', `[cron] 신청 초기화: ${today}`),
-            saveToGithub('users.json', users, usersResult.sha || '', `[cron] 마지막주차일 업데이트: ${today}`),
-        ]);
+        // 순차 저장 (GitHub API는 동시 커밋 시 SHA 충돌 발생)
+        const historySaved = await saveToGithub('history.json', newHistory, historySha || '', `[cron] 자동 배정: ${today}`);
+        if (!historySaved) {
+            console.error(`[cron] history.json 저장 실패`);
+            return NextResponse.json({ error: '배정 결과 저장에 실패했습니다.' }, { status: 500 });
+        }
 
-        if (!historySaved || !requestsSaved || !usersSaved) {
-            console.error(`[cron] 저장 실패 - history:${historySaved} requests:${requestsSaved} users:${usersSaved}`);
-            if (!historySaved) {
-                return NextResponse.json({ error: '배정 결과 저장에 실패했습니다.' }, { status: 500 });
-            }
+        const requestsSaved = await saveToGithub('requests.json', updatedRequests, requestsSha || '', `[cron] 신청 초기화: ${today}`);
+        const usersSaved = await saveToGithub('users.json', users, usersResult.sha || '', `[cron] 마지막주차일 업데이트: ${today}`);
+
+        if (!requestsSaved || !usersSaved) {
+            console.error(`[cron] 저장 부분 실패 - requests:${requestsSaved} users:${usersSaved}`);
         }
 
         return NextResponse.json({
