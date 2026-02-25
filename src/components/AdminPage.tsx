@@ -32,6 +32,8 @@ export default function AdminPage({ onBack }: AdminPageProps) {
     const [editingHistoryDate, setEditingHistoryDate] = useState<string | null>(null);
     const [editHistoryForm, setEditHistoryForm] = useState<Partial<HistoryEntry>>({});
     const [historyFilter, setHistoryFilter] = useState({ start: '', end: '' });
+    const [isAddingHistory, setIsAddingHistory] = useState(false);
+    const [newHistoryForm, setNewHistoryForm] = useState<Partial<HistoryEntry>>({ date: '', admin: [], tower: [], wait: [] });
     const [githubCheckResult, setGithubCheckResult] = useState<any>(null);
     const [isCheckingGithub, setIsCheckingGithub] = useState(false);
 
@@ -155,6 +157,30 @@ export default function AdminPage({ onBack }: AdminPageProps) {
             body: JSON.stringify({ index }),
         });
         if (res.ok) fetchData();
+    };
+
+    const handleAddHistory = async () => {
+        if (!newHistoryForm.date) {
+            alert('날짜를 입력해주세요.');
+            return;
+        }
+        try {
+            const res = await fetch('/api/history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newHistoryForm),
+            });
+            const json = await res.json();
+            if (res.ok) {
+                setIsAddingHistory(false);
+                setNewHistoryForm({ date: '', admin: [], tower: [], wait: [] });
+                fetchData();
+            } else {
+                alert(json.error || '추가 중 오류 발생');
+            }
+        } catch (e) {
+            alert('네트워크 오류');
+        }
     };
 
     const handleUpdateHistory = async () => {
@@ -529,8 +555,87 @@ export default function AdminPage({ onBack }: AdminPageProps) {
                                         onChange={(e) => setHistoryFilter({ ...historyFilter, end: e.target.value })}
                                     />
                                 </div>
+                                <button
+                                    onClick={() => { setIsAddingHistory(true); setEditingHistoryDate(null); }}
+                                    className="px-4 py-2 bg-primary-500 text-white rounded-tag text-[10px] font-bold shadow-md shadow-primary-200"
+                                >
+                                    + 수동 추가
+                                </button>
                             </div>
                         </div>
+
+                        {isAddingHistory && (
+                            <div className="card border-2 border-primary-200 animate-fade-in">
+                                <h4 className="font-bold mb-6 text-primary-600">주차이력 수동 추가</h4>
+                                <div className="space-y-6">
+                                    <div className="space-y-1">
+                                        <label className="input-label">배정 날짜</label>
+                                        <input
+                                            type="date"
+                                            value={newHistoryForm.date || ''}
+                                            onChange={(e) => setNewHistoryForm({ ...newHistoryForm, date: e.target.value })}
+                                            className="input"
+                                        />
+                                    </div>
+
+                                    {['admin', 'tower', 'wait'].map((key) => (
+                                        <div key={key} className="space-y-2">
+                                            <p className="section-label">
+                                                {key === 'admin' ? (
+                                                    <><svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg> 관리실</>
+                                                ) : key === 'tower' ? (
+                                                    <><svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg> 타워</>
+                                                ) : (
+                                                    <><svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> 대기</>
+                                                )} 배정
+                                            </p>
+                                            <div className="flex flex-wrap gap-2 p-3 bg-surface-muted rounded-input border border-line-light min-h-[50px]">
+                                                {data?.users.map(user => {
+                                                    const isSelected = (newHistoryForm as any)[key]?.some((item: string) => item.startsWith(user.name));
+                                                    return (
+                                                        <button
+                                                            key={user.name}
+                                                            onClick={() => {
+                                                                const currentList = [...((newHistoryForm as any)[key] || [])];
+                                                                const existsIdx = currentList.findIndex((item: string) => item.startsWith(user.name));
+                                                                if (existsIdx > -1) {
+                                                                    currentList.splice(existsIdx, 1);
+                                                                    setNewHistoryForm({ ...newHistoryForm, [key]: currentList });
+                                                                } else {
+                                                                    const otherKeys = ['admin', 'tower', 'wait'].filter(k => k !== key);
+                                                                    const updated = { ...newHistoryForm } as any;
+                                                                    otherKeys.forEach(ok => {
+                                                                        updated[ok] = (updated[ok] || []).filter((item: string) => !item.startsWith(user.name));
+                                                                    });
+                                                                    currentList.push(`${user.name} (${user.car_type}) 수동입력`);
+                                                                    setNewHistoryForm({ ...updated, [key]: currentList });
+                                                                }
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-tag text-[10px] font-bold transition-all border ${isSelected
+                                                                ? (key === 'admin' ? 'bg-primary-500 text-white border-primary-600 shadow-md shadow-primary-100' : key === 'tower' ? 'bg-secondary-500 text-white border-secondary-600 shadow-md shadow-secondary-100' : 'bg-ink-secondary text-white border-ink')
+                                                                : 'bg-surface-card text-ink-tertiary border-line-light hover:border-line'
+                                                                }`}
+                                                        >
+                                                            {user.name}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={handleAddHistory} className="btn-primary flex-1 py-4 text-sm">추가하기</button>
+                                        <button
+                                            onClick={() => { setIsAddingHistory(false); setNewHistoryForm({ date: '', admin: [], tower: [], wait: [] }); }}
+                                            className="flex-1 py-4 bg-surface-muted text-ink-tertiary rounded-button font-bold hover:bg-line-light transition-all"
+                                        >
+                                            취소
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {filteredHistory.map((h) => (
                             <div key={h.date} className="card group">
