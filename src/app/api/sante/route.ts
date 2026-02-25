@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
         const { data, sha } = await loadFromGithub<RequestsData>('requests.json', DEFAULT);
         data.sante_opt_out = sante_opt_out;
         (data as any).sante_status_updated_at = new Date().toISOString();
-        await saveToGithub('requests.json', data, sha, `상떼 주차 상태 변경: ${sante_opt_out ? '안함' : '함'}`);
+        const saved = await saveToGithub('requests.json', data, sha, `상떼 주차 상태 변경: ${sante_opt_out ? '안함' : '함'}`);
+        if (!saved) {
+            return NextResponse.json({ error: '상태 저장에 실패했습니다.' }, { status: 500 });
+        }
         return NextResponse.json({ success: true });
     } catch (e) {
         return NextResponse.json({ error: '처리 중 오류가 발생했습니다.' }, { status: 500 });

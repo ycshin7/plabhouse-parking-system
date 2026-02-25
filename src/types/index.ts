@@ -3,8 +3,6 @@ export interface User {
     name: string;
     car_type: 'SUV' | 'SEDAN';
     last_parked_date: string | null;
-    car_detail?: string;
-    car_plate?: string;
     car_number?: string;
     car_details?: string;
 }

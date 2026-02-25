@@ -1,16 +1,12 @@
 {
-<<<<<<< HEAD
-    "target_date": "2026-02-16",
-    "applicants": [],
-=======
-    "target_date": "2026-02-11",
-    "applicants": [
-        {
-            "name": "뉴진",
-            "timestamp": "2026-02-10T18:03:01.040767+09:00"
-        }
-    ],
->>>>>>> 7eee0cd1283e7e3e49962b5d7b5c1c1661d07652
-    "guests": [],
-    "sante_opt_out": false
+  "target_date": "",
+  "applicants": [
+    {
+      "name": "라크",
+      "timestamp": "2026-02-24T10:28:06.082Z"
+    }
+  ],
+  "guests": [],
+  "sante_opt_out": true,
+  "sante_status_updated_at": "2026-02-24T11:04:27.880Z"
 }

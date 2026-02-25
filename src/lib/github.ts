@@ -66,7 +66,7 @@ export async function saveToGithub<T>(
     commitMessage: string
 ): Promise<boolean> {
     // 1. GitHub 시도
-    if (GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO && sha !== 'local') {
+    if (GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO && sha && sha !== 'local') {
         try {
             const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
             const body: Record<string, string> = {

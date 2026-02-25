@@ -5,25 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-blue: #3182f6;
-  --primary-blue-hover: #1b64da;
-  --bg-white: #ffffff;
-  --text-dark: #191f28;
-  --text-gray: #8b95a1;
-  --border-light: #e5e8eb;
-
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.14);
-}
-
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased text-ink bg-white;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-    color: var(--text-dark);
-    background-color: #ffffff;
-    background-image: radial-gradient(#d1d6db 1px, transparent 1px);
+    background-image: radial-gradient(#e5e8eb 1px, transparent 1px);
     background-size: 20px 20px;
     animation: backgroundMove 20s ease-in-out infinite;
     min-height: 100vh;
@@ -35,22 +21,20 @@
   h4,
   h5,
   h6 {
-    @apply font-bold tracking-tight text-[#191f28];
+    @apply font-bold tracking-tight text-ink;
   }
 
   h1 {
     font-family: 'GmarketSansBold', sans-serif !important;
-    @apply text-[var(--primary-blue)] text-center;
+    @apply text-primary-500 text-center;
   }
 }
 
 @keyframes backgroundMove {
-
   0%,
   100% {
     background-position: 0 0;
   }
-
   50% {
     background-position: 20px 20px;
   }
@@ -58,53 +42,189 @@
 
 @layer components {
 
-  /* Premium Toss-style Buttons */
-  .toss-btn-primary {
+  /* ========================================
+     Button System
+     ======================================== */
+
+  .btn-primary {
     @apply relative overflow-hidden transition-all duration-300 ease-out flex items-center justify-center;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, #1b64da 100%);
-    color: white;
-    border-radius: 24px;
-    box-shadow: 0 4px 16px rgba(49, 130, 246, 0.25);
-    font-weight: 600;
-    padding: 16px 32px;
+    @apply bg-gradient-to-br from-primary-500 to-primary-600 text-white;
+    @apply rounded-button shadow-button font-semibold;
+    @apply px-8 py-4;
   }
 
-  .toss-btn-primary:hover {
+  .btn-primary:hover {
     @apply -translate-y-[2px] scale-[1.02];
-    box-shadow: 0 8px 24px rgba(49, 130, 246, 0.4);
+    @apply shadow-button-hover;
   }
 
-  .toss-btn-primary:active {
+  .btn-primary:active {
     @apply translate-y-0 scale-[0.98];
     box-shadow: 0 2px 8px rgba(49, 130, 246, 0.3);
   }
 
-  /* Main Card Layouts */
-  .card-container {
-    @apply bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 transition-all duration-300;
+  .btn-primary:disabled {
+    @apply opacity-30 cursor-not-allowed translate-y-0 scale-100 shadow-none;
   }
 
-  .card-container:hover {
-    @apply shadow-md -translate-y-1 border-blue-50;
+  .btn-secondary {
+    @apply px-6 py-3 bg-white border border-line rounded-button font-bold text-sm;
+    @apply text-ink-secondary hover:bg-surface-muted transition-all;
   }
 
-  /* Action Buttons (Cards) */
+  .btn-ghost {
+    @apply px-4 py-2 bg-transparent border border-transparent rounded-button text-sm font-bold;
+    @apply text-ink-tertiary hover:bg-surface-muted transition-all;
+  }
+
+  .btn-danger {
+    @apply w-full py-4 text-danger-500 bg-white border border-danger-100 rounded-button font-black text-xs;
+    @apply hover:bg-danger-500 hover:text-white transition-all shadow-sm;
+  }
+
+  /* ========================================
+     Card System
+     ======================================== */
+
+  .card {
+    @apply bg-surface-card rounded-card p-6 shadow-card border border-line-light;
+    @apply transition-all duration-300;
+  }
+
+  .card-interactive {
+    @apply card;
+  }
+
+  .card-interactive:hover {
+    @apply shadow-card-hover -translate-y-1 border-primary-50;
+  }
+
+  /* ========================================
+     Form Elements
+     ======================================== */
+
+  .input {
+    @apply w-full p-4 bg-surface-muted rounded-input border border-line-light;
+    @apply outline-none font-bold text-ink;
+    @apply focus:ring-2 focus:ring-primary-500 focus:border-primary-200;
+    @apply transition-all;
+  }
+
+  .input-label {
+    @apply text-[10px] font-black text-ink-tertiary ml-1 uppercase tracking-wider;
+  }
+
+  .select {
+    @apply input cursor-pointer;
+  }
+
+  /* ========================================
+     Action Cards (Toggle Buttons)
+     ======================================== */
+
   .action-card {
-    @apply flex flex-col items-center justify-center p-4 rounded-[24px] bg-white border border-gray-100 shadow-sm transition-all text-center cursor-pointer;
-  }
-
-  .action-card.active {
-    @apply border-blue-200 bg-blue-50/50 ring-4 ring-blue-500/10;
+    @apply flex flex-col items-center justify-center p-5 rounded-card bg-surface-card;
+    @apply border border-line-light shadow-sm transition-all text-center cursor-pointer;
+    @apply transform active:scale-95;
   }
 
   .action-card:hover:not(.active) {
-    @apply border-gray-200 bg-gray-50/50 -translate-y-1;
+    @apply border-line -translate-y-1;
+  }
+
+  .action-card-label {
+    @apply text-[10px] uppercase font-black mb-1;
+  }
+
+  .action-card-value {
+    @apply text-xl font-black;
+  }
+
+  /* ========================================
+     Tab Navigation
+     ======================================== */
+
+  .tab-nav {
+    @apply flex space-x-2 mb-8 p-1.5 bg-surface-muted rounded-input border border-line-light;
+  }
+
+  .tab-btn {
+    @apply flex-1 py-3.5 rounded-tag text-sm font-black transition-all;
+  }
+
+  .tab-btn-active {
+    @apply tab-btn bg-surface-card text-primary-500 shadow-sm;
+  }
+
+  .tab-btn-inactive {
+    @apply tab-btn text-ink-tertiary hover:text-ink-secondary;
+  }
+
+  /* ========================================
+     Tag / Badge
+     ======================================== */
+
+  .tag {
+    @apply px-3 py-1 rounded-tag text-xs font-bold;
+  }
+
+  .tag-blue {
+    @apply tag bg-primary-50 text-primary-500 border border-primary-100;
+  }
+
+  .tag-purple {
+    @apply tag bg-secondary-50 text-secondary-600 border border-secondary-100;
+  }
+
+  .tag-green {
+    @apply tag bg-success-50 text-success-600 border border-success-100;
+  }
+
+  .tag-red {
+    @apply tag bg-danger-50 text-danger-500 border border-danger-100;
+  }
+
+  /* ========================================
+     Message / Alert
+     ======================================== */
+
+  .alert {
+    @apply p-5 rounded-card text-sm font-bold text-center border animate-fade-in;
+  }
+
+  .alert-success {
+    @apply alert bg-success-50 text-success-600 border-success-100;
+  }
+
+  .alert-error {
+    @apply alert bg-danger-50 text-danger-500 border-danger-100;
+  }
+
+  /* ========================================
+     Section Header
+     ======================================== */
+
+  .section-label {
+    @apply text-[10px] font-black text-ink-tertiary uppercase tracking-wider;
+  }
+
+  .section-title {
+    @apply text-xl font-black text-ink;
+  }
+
+  /* Legacy compat - old names still work */
+  .toss-btn-primary {
+    @apply btn-primary;
+  }
+
+  .card-container {
+    @apply card;
   }
 }
 
 /* Custom Utilities */
 .subtitle {
-  @apply text-gray-400 text-center text-lg mb-8 font-medium;
+  @apply text-ink-tertiary text-center text-lg mb-8 font-medium;
 }
 
 .animate-fade-in {
@@ -116,7 +236,6 @@
     opacity: 0;
     transform: translateY(8px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -133,6 +252,5 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 3px;
+  @apply bg-ink-placeholder rounded;
 }

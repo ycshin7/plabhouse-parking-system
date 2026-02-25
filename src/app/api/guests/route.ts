@@ -13,13 +13,16 @@ export async function POST(request: NextRequest) {
         if (!data.guests) data.guests = [];
 
         data.guests.push({
-            name: body.name,
+            name: body.researcher ? `${body.name} (${body.researcher})` : body.name,
             car_type: body.car_type || 'SEDAN',
             location: body.location || ['상관없음'],
             timestamp: new Date().toISOString(),
         });
 
-        await saveToGithub('requests.json', data, sha, `외부인 신청: ${body.name}`);
+        const saved = await saveToGithub('requests.json', data, sha, `외부인 신청: ${body.name}`);
+        if (!saved) {
+            return NextResponse.json({ error: '신청 저장에 실패했습니다.' }, { status: 500 });
+        }
         return NextResponse.json({ success: true });
     } catch (e) {
         return NextResponse.json({ error: '처리 중 오류가 발생했습니다.' }, { status: 500 });

@@ -37,7 +37,7 @@ interface Candidate {
  * 예: "뚜비 (SUV) 18:00" → "뚜비 (SUV)"
  */
 export function stripTime(nameStr: string): string {
-    const parts = nameStr.rsplit ? nameStr.rsplit(' ', 1) : nameStr.split(' ');
+    const parts = nameStr.split(' ');
     const lastPart = parts[parts.length - 1];
     if (/^\d{1,2}:\d{2}$/.test(lastPart) || lastPart === '수동입력') {
         return parts.slice(0, -1).join(' ');
@@ -85,11 +85,7 @@ export function runAllocation(input: AllocationInput): AllocationOutput {
 
         try {
             ts = new Date(app.timestamp);
-            // KST 변환
-            const kstOffset = 9 * 60 * 60 * 1000;
-            const utcTime = ts.getTime();
-            const kstTime = new Date(utcTime);
-            uTime = kstTime.toLocaleTimeString('ko-KR', {
+            uTime = ts.toLocaleTimeString('ko-KR', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
@@ -229,19 +225,3 @@ export function runAllocation(input: AllocationInput): AllocationOutput {
     };
 }
 
-// String.prototype에 rsplit 추가 (Python 호환)
-declare global {
-    interface String {
-        rsplit(sep: string, maxsplit: number): string[];
-    }
-}
-
-String.prototype.rsplit = function (sep: string, maxsplit: number): string[] {
-    const parts = this.split(sep);
-    if (maxsplit && parts.length > maxsplit) {
-        const result = parts.slice(-(maxsplit + 1));
-        result[0] = parts.slice(0, parts.length - maxsplit).join(sep);
-        return result;
-    }
-    return parts;
-};

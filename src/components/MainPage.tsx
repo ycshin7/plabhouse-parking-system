@@ -97,7 +97,7 @@ export default function MainPage({ onAdmin }: MainPageProps) {
             if (res.ok) {
                 setMessage({ type: 'success', text: `${selectedUser}님 주차 신청 완료!` });
                 setSelectedUser('');
-                setActiveForm('none'); // Close form on success
+                setActiveForm('none');
                 fetchData();
             } else {
                 const json = await res.json();
@@ -125,7 +125,7 @@ export default function MainPage({ onAdmin }: MainPageProps) {
             if (res.ok) {
                 setMessage({ type: 'success', text: `${guestForm.name} 방문 주차 신청 완료!` });
                 setGuestForm({ name: '', car_type: 'SEDAN', location: '상관없음', researcher: '' });
-                setActiveForm('none'); // Close form on success
+                setActiveForm('none');
                 fetchData();
             } else {
                 const json = await res.json();
@@ -145,15 +145,20 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sante_opt_out: newStatus }),
             });
-            if (res.ok) fetchData();
-            else alert('상태 변경 실패');
+            if (res.ok) {
+                setMessage({ type: 'success', text: `상떼주차 ${newStatus ? '안함' : '함'}으로 변경되었습니다.` });
+                fetchData();
+            } else {
+                const json = await res.json();
+                setMessage({ type: 'error', text: json.error || '상태 변경 실패' });
+            }
         } catch (e) {
-            console.error('Sante toggle error:', e);
+            setMessage({ type: 'error', text: '네트워크 오류가 발생했습니다.' });
         }
     };
 
     if (loading) return (
-        <div className="flex h-screen items-center justify-center font-bold text-blue-500 animate-pulse bg-white">
+        <div className="flex h-screen items-center justify-center font-bold text-primary-500 animate-pulse bg-white">
             플랩하우스 주차 시스템 로딩 중...
         </div>
     );
@@ -163,85 +168,87 @@ export default function MainPage({ onAdmin }: MainPageProps) {
 
     return (
         <div className="mx-auto max-w-4xl min-h-screen px-4 pb-20">
-            {/* Toolbar Area */}
+            {/* Toolbar */}
             <div className="flex justify-between items-center pt-6 pb-2">
                 <button
                     onClick={onAdmin}
-                    className="px-4 py-2 bg-white/80 rounded-xl text-xs font-bold text-blue-500 border border-blue-100 shadow-sm hover:bg-blue-50 transition-all focus:outline-none"
+                    className="px-4 py-2 bg-white/80 rounded-input text-xs font-bold text-primary-500 border border-primary-100 shadow-sm hover:bg-primary-50 transition-all focus:outline-none"
                 >
-                    ⚙️ 관리화면 접속
+                    <svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    관리화면
                 </button>
-                <div className="px-4 py-2 bg-white/50 backdrop-blur-sm rounded-xl text-xs font-bold text-gray-500 border border-gray-100">
-                    총 방문자: <span className="text-gray-800">{visitorCount.toLocaleString()}</span>
+                <div className="px-4 py-2 bg-white/50 backdrop-blur-sm rounded-input text-xs font-bold text-ink-tertiary border border-line-light">
+                    방문자 <span className="text-ink">{visitorCount.toLocaleString()}</span>
                 </div>
             </div>
 
             {/* Header */}
             <header className="py-10 text-center animate-fade-in">
-                <h1 className="text-[40px] font-black mb-1 leading-tight tracking-tight text-blue-600">플랩하우스 주차 시스템</h1>
-                <p className="text-gray-400 font-bold text-lg">{targetDate} ({targetDay}) 배정 신청</p>
+                <h1 className="text-[40px] font-black mb-1 leading-tight tracking-tight">플랩하우스 주차 시스템</h1>
+                <p className="text-ink-tertiary font-bold text-lg">{targetDate} ({targetDay}) 배정 신청</p>
             </header>
 
-            {/* Navigation Tabs (Big Buttons Style) */}
-            <nav className="flex space-x-2 mb-8 p-1.5 bg-gray-100/50 rounded-2xl border border-gray-100">
+            {/* Tab Navigation */}
+            <nav className="tab-nav">
                 <button
                     onClick={() => setActiveTab('apply')}
-                    className={`flex-1 py-3.5 rounded-xl text-sm font-black transition-all ${activeTab === 'apply' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={activeTab === 'apply' ? 'tab-btn-active' : 'tab-btn-inactive'}
                 >
                     주차 신청하기
                 </button>
                 <button
                     onClick={() => setActiveTab('status')}
-                    className={`flex-1 py-3.5 rounded-xl text-sm font-black transition-all ${activeTab === 'status' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={activeTab === 'status' ? 'tab-btn-active' : 'tab-btn-inactive'}
                 >
-                    배정 현황 (Status)
+                    배정 현황
                 </button>
             </nav>
 
             <main className="animate-fade-in">
                 {activeTab === 'apply' && (
                     <div className="space-y-6">
-                        {/* Interactive Main Buttons (The 3 Main Items) */}
+                        {/* 3 Action Cards */}
                         <div className="grid grid-cols-3 gap-3">
-                            {/* Staff Toggle Button */}
+                            {/* Staff Toggle */}
                             <button
                                 onClick={() => setActiveForm(activeForm === 'staff' ? 'none' : 'staff')}
-                                className={`group p-5 rounded-[32px] border text-center shadow-sm transition-all transform active:scale-95 ${activeForm === 'staff' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-100 hover:border-blue-200'}`}
+                                className={`action-card ${activeForm === 'staff' ? 'bg-primary-500 border-primary-500 text-white' : 'hover:border-primary-200'}`}
                             >
-                                <p className={`text-[10px] uppercase font-black mb-1 ${activeForm === 'staff' ? 'text-blue-100' : 'text-gray-400'}`}>리서처</p>
-                                <p className="text-xl font-black">{appliedNames.length}명</p>
+                                <p className={`action-card-label ${activeForm === 'staff' ? 'text-primary-100' : 'text-ink-tertiary'}`}>리서처</p>
+                                <p className="action-card-value">{appliedNames.length}명</p>
                             </button>
 
-                            {/* Guest Toggle Button */}
+                            {/* Guest Toggle */}
                             <button
                                 onClick={() => setActiveForm(activeForm === 'guest' ? 'none' : 'guest')}
-                                className={`group p-5 rounded-[32px] border text-center shadow-sm transition-all transform active:scale-95 ${activeForm === 'guest' ? 'bg-purple-600 border-purple-600 text-white' : 'bg-white border-gray-100 hover:border-purple-200'}`}
+                                className={`action-card ${activeForm === 'guest' ? 'bg-secondary-600 border-secondary-600 text-white' : 'hover:border-secondary-200'}`}
                             >
-                                <p className={`text-[10px] uppercase font-black mb-1 ${activeForm === 'guest' ? 'text-purple-100' : 'text-gray-400'}`}>손님</p>
-                                <p className="text-xl font-black">{data?.requests.guests.length}명</p>
+                                <p className={`action-card-label ${activeForm === 'guest' ? 'text-secondary-100' : 'text-ink-tertiary'}`}>손님</p>
+                                <p className="action-card-value">{data?.requests.guests.length}명</p>
                             </button>
 
-                            {/* Sante Toggle Button */}
+                            {/* Sante Toggle */}
                             <button
                                 onClick={handleSanteToggle}
-                                className={`p-5 rounded-[32px] border text-center shadow-sm transition-all transform active:scale-95 ${!data?.requests.sante_opt_out ? 'bg-green-500 border-green-500 text-white' : 'bg-gray-50 border-gray-100 text-gray-400'}`}
+                                className={`action-card ${!data?.requests.sante_opt_out ? 'bg-success-500 border-success-500 text-white' : 'text-ink-disabled'}`}
                             >
-                                <p className={`text-[10px] uppercase font-black mb-1 ${!data?.requests.sante_opt_out ? 'text-green-100' : 'text-gray-400'}`}>상떼주차</p>
-                                <p className="text-xl font-black">{!data?.requests.sante_opt_out ? '함' : '안함'}</p>
+                                <p className={`action-card-label ${!data?.requests.sante_opt_out ? 'text-success-100' : 'text-ink-tertiary'}`}>상떼주차</p>
+                                <p className="action-card-value">{!data?.requests.sante_opt_out ? '함' : '안함'}</p>
                             </button>
                         </div>
 
-                        {/* Apply Forms (Conditional Rendering) */}
+                        {/* Apply Forms */}
                         <div className="animate-slide-up">
                             {activeForm === 'staff' && (
-                                <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm animate-fade-in mb-4">
-                                    <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-blue-600">
-                                        🏎️ 직원 주차 신청
+                                <div className="card animate-fade-in mb-4 !p-8 !rounded-[40px]">
+                                    <h3 className="section-title mb-6 flex items-center gap-2 text-primary-500">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                        직원 주차 신청
                                     </h3>
                                     <select
                                         value={selectedUser}
                                         onChange={(e) => setSelectedUser(e.target.value)}
-                                        className="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none font-bold text-gray-700 mb-4 focus:ring-2 focus:ring-blue-500"
+                                        className="input mb-4"
                                     >
                                         <option value="">이름을 선택하세요 (자정 마감)</option>
                                         {data?.users.map((u) => (
@@ -253,7 +260,7 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                     <button
                                         onClick={handleApply}
                                         disabled={!selectedUser}
-                                        className="toss-btn-primary w-full py-5 text-lg"
+                                        className="btn-primary w-full py-5 text-lg"
                                     >
                                         지금 신청하기
                                     </button>
@@ -261,26 +268,29 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                             )}
 
                             {activeForm === 'guest' && (
-                                <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm animate-fade-in mb-4">
-                                    <h3 className="text-xl font-black mb-6 text-purple-600">👤 외부인 주차 신청</h3>
+                                <div className="card animate-fade-in mb-4 !p-8 !rounded-[40px]">
+                                    <h3 className="section-title mb-6 text-secondary-600">
+                                        <svg className="w-6 h-6 inline-block mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                        외부인 주차 신청
+                                    </h3>
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-gray-400 ml-1 uppercase">방문자 성함/업체명</label>
+                                                <label className="input-label">방문자 성함/업체명</label>
                                                 <input
                                                     type="text"
                                                     value={guestForm.name}
                                                     onChange={(e) => setGuestForm({ ...guestForm, name: e.target.value })}
-                                                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none font-bold focus:ring-2 focus:ring-purple-500"
+                                                    className="input focus:ring-secondary-500"
                                                     placeholder="성함 입력"
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-gray-400 ml-1 uppercase">담당 연구원</label>
+                                                <label className="input-label">담당 연구원</label>
                                                 <select
                                                     value={guestForm.researcher}
                                                     onChange={(e) => setGuestForm({ ...guestForm, researcher: e.target.value })}
-                                                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none font-bold focus:ring-2 focus:ring-purple-500"
+                                                    className="select focus:ring-secondary-500"
                                                 >
                                                     <option value="">담당자 선택</option>
                                                     {data?.users.map(u => <option key={u.name} value={u.name}>{u.name}</option>)}
@@ -289,22 +299,22 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-gray-400 ml-1 uppercase">차종</label>
+                                                <label className="input-label">차종</label>
                                                 <select
                                                     value={guestForm.car_type}
                                                     onChange={(e) => setGuestForm({ ...guestForm, car_type: e.target.value as any })}
-                                                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none font-bold"
+                                                    className="select"
                                                 >
                                                     <option value="SEDAN">SEDAN (승용)</option>
                                                     <option value="SUV">SUV/Large (대형)</option>
                                                 </select>
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-gray-400 ml-1 uppercase">희망 위치</label>
+                                                <label className="input-label">희망 위치</label>
                                                 <select
                                                     value={guestForm.location}
                                                     onChange={(e) => setGuestForm({ ...guestForm, location: e.target.value })}
-                                                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none font-bold"
+                                                    className="select"
                                                 >
                                                     <option value="상관없음">상관없음</option>
                                                     <option value="관리실">지상 (관리실)</option>
@@ -315,7 +325,7 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                         <button
                                             onClick={handleGuestApply}
                                             disabled={!guestForm.name || !guestForm.researcher}
-                                            className="w-full py-5 bg-purple-600 text-white rounded-3xl font-black text-lg shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all active:scale-[0.98] disabled:opacity-30"
+                                            className="w-full py-5 bg-secondary-600 text-white rounded-button font-black text-lg shadow-lg shadow-secondary-100 hover:bg-secondary-700 transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
                                             방문 주차 신청하기
                                         </button>
@@ -323,9 +333,8 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                 </div>
                             )}
 
-                            {message && activeForm === 'none' && (
-                                <div className={`mt-4 p-5 rounded-[32px] text-sm font-bold text-center border animate-fade-in ${message.type === 'success' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
-                                    }`}>
+                            {message && (
+                                <div className={message.type === 'success' ? 'alert-success mt-4' : 'alert-error mt-4'}>
                                     {message.text}
                                 </div>
                             )}
@@ -336,49 +345,57 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                 {activeTab === 'status' && (
                     <div className="space-y-6 animate-fade-in">
                         {todayResult ? (
-                            <div className="bg-white p-8 rounded-[40px] border border-blue-100 shadow-sm bg-blue-50/10">
-                                <h3 className="text-xl font-black mb-6 text-blue-800 flex items-center gap-2">
-                                    📅 {formatDate(now)} 배정 결과
+                            <div className="card !rounded-[40px] !p-8 border-primary-100 bg-primary-50/10">
+                                <h3 className="section-title mb-6 text-primary-800 flex items-center gap-2">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    {formatDate(now)} 배정 결과
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="p-6 bg-white rounded-3xl border border-blue-50 shadow-sm">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase mb-3 px-1 tracking-tighter">🏢 관리실 (지상)</p>
+                                    <div className="p-6 bg-white rounded-button border border-primary-50 shadow-sm">
+                                        <p className="section-label text-primary-400 mb-3 px-1">
+                                            <svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                            관리실 (지상)
+                                        </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {todayResult.admin.map(name => <span key={name} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm shadow-sm border border-blue-100">{name.split(' (')[0]}</span>)}
-                                            {todayResult.admin.length === 0 && <span className="text-gray-300 italic">배정 없음</span>}
+                                            {todayResult.admin.map(name => <span key={name} className="tag-blue shadow-sm">{name.split(' (')[0]}</span>)}
+                                            {todayResult.admin.length === 0 && <span className="text-ink-placeholder italic">배정 없음</span>}
                                         </div>
                                     </div>
-                                    <div className="p-6 bg-white rounded-3xl border border-purple-50 shadow-sm">
-                                        <p className="text-[10px] font-black text-purple-400 uppercase mb-3 px-1 tracking-tighter">🅿️ 타워 (기계식)</p>
+                                    <div className="p-6 bg-white rounded-button border border-secondary-50 shadow-sm">
+                                        <p className="section-label text-secondary-400 mb-3 px-1">
+                                            <svg className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                                            타워 (기계식)
+                                        </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {todayResult.tower.map(name => <span key={name} className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-bold text-sm shadow-sm border border-purple-100">{name.split(' (')[0]}</span>)}
-                                            {todayResult.tower.length === 0 && <span className="text-gray-300 italic">배정 없음</span>}
+                                            {todayResult.tower.map(name => <span key={name} className="tag-purple shadow-sm">{name.split(' (')[0]}</span>)}
+                                            {todayResult.tower.length === 0 && <span className="text-ink-placeholder italic">배정 없음</span>}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-sm text-center">
-                                <p className="text-gray-400 font-bold mb-1">아직 오늘의 배정 결과가 발표되지 않았습니다.</p>
-                                <p className="text-[10px] text-gray-300">매일 00:01에 자동으로 배정이 진행됩니다.</p>
+                            <div className="card !rounded-[40px] !p-12 text-center">
+                                <svg className="w-12 h-12 mx-auto mb-4 text-ink-placeholder" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <p className="text-ink-tertiary font-bold mb-1">아직 오늘의 배정 결과가 발표되지 않았습니다.</p>
+                                <p className="text-[10px] text-ink-placeholder">매일 00:01에 자동으로 배정이 진행됩니다.</p>
                             </div>
                         )}
 
-                        <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
-                            <h4 className="text-sm font-black mb-6 text-gray-400 uppercase tracking-widest px-1 text-center">현재 신청 대기 (내일 배정용)</h4>
+                        <div className="card !rounded-[40px] !p-8">
+                            <h4 className="section-label text-center mb-6 tracking-widest">현재 신청 대기 (내일 배정용)</h4>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-6 bg-gray-50/50 rounded-3xl border border-gray-100 flex flex-col items-center justify-center">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase mb-2">리서처</p>
-                                    <p className="text-3xl font-black text-gray-800 tracking-tighter">
+                                <div className="p-6 bg-surface-muted rounded-button border border-line-light flex flex-col items-center justify-center">
+                                    <p className="section-label text-primary-400 mb-2">리서처</p>
+                                    <p className="text-3xl font-black text-ink tracking-tighter">
                                         {appliedNames.length}
-                                        <span className="text-sm ml-1 text-gray-400 font-bold uppercase">명</span>
+                                        <span className="text-sm ml-1 text-ink-tertiary font-bold">명</span>
                                     </p>
                                 </div>
-                                <div className="p-6 bg-purple-50/30 rounded-3xl border border-purple-50 flex flex-col items-center justify-center">
-                                    <p className="text-[10px] font-black text-purple-400 uppercase mb-2">외부 방문객</p>
-                                    <p className="text-3xl font-black text-purple-600 tracking-tighter">
+                                <div className="p-6 bg-secondary-50/30 rounded-button border border-secondary-50 flex flex-col items-center justify-center">
+                                    <p className="section-label text-secondary-400 mb-2">외부 방문객</p>
+                                    <p className="text-3xl font-black text-secondary-600 tracking-tighter">
                                         {data?.requests.guests.length || 0}
-                                        <span className="text-sm ml-1 text-purple-400 font-bold uppercase">명</span>
+                                        <span className="text-sm ml-1 text-secondary-400 font-bold">명</span>
                                     </p>
                                 </div>
                             </div>

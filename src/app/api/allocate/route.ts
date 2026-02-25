@@ -116,8 +116,7 @@ export async function POST(request: NextRequest) {
             const towerCapacity = requestsData.sante_opt_out ? 3 : 2;
 
             const stripTime = (nameStr: string) => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const parts = (nameStr as any).rsplit ? (nameStr as any).rsplit(' ', 1) : nameStr.split(' ');
+                const parts = nameStr.split(' ');
                 const last = parts[parts.length - 1];
                 if (/^\d{1,2}:\d{2}$/.test(last) || last === '수동입력') {
                     return parts.slice(0, -1).join(' ');
