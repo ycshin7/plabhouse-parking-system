@@ -11,7 +11,6 @@ export interface AllocationInput {
     applicants: Applicant[];
     guests: Guest[];
     santeOptOut: boolean;
-    targetDate: string;
 }
 
 export interface AllocationOutput {
@@ -68,7 +67,7 @@ function getLastParkedFromHistory(name: string, history: HistoryEntry[]): string
  * 주차 배정 알고리즘 실행
  */
 export function runAllocation(input: AllocationInput): AllocationOutput {
-    const { users, history, applicants, guests, santeOptOut, targetDate } = input;
+    const { users, history, applicants, guests, santeOptOut } = input;
 
     let adminSlots = 1;
     let towerSlots = santeOptOut ? 3 : 2;
@@ -193,6 +192,7 @@ export function runAllocation(input: AllocationInput): AllocationOutput {
     for (const s of staffCandidates) {
         let assigned = false;
 
+        // SUV는 타워 물리적 높이 제한으로 관리실만 배정 가능
         if (s.carType === 'SUV') {
             if (adminSlots > 0) {
                 resultAdmin.push(s.displayName);

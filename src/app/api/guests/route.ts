@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadFromGithub, saveToGithub } from '@/lib/github';
 import { RequestsData, Guest } from '@/types';
+import { isApplicationClosed } from '@/lib/kst';
 
 const DEFAULT: RequestsData = { target_date: '', applicants: [], guests: [], sante_opt_out: false };
 
 export async function POST(request: NextRequest) {
     try {
+        const cutoff = isApplicationClosed();
+        if (cutoff.closed) {
+            return NextResponse.json({ error: cutoff.message }, { status: 403 });
+        }
+
         const body: Guest & { researcher?: string } = await request.json();
         if (!body.name) return NextResponse.json({ error: '방문자 이름을 입력해주세요.' }, { status: 400 });
 

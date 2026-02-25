@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadFromGithub, saveToGithub } from '@/lib/github';
 import { HistoryEntry, RequestsData } from '@/types';
+import { stripTime } from '@/lib/allocation';
 
 /** 임시 디버그: 환경변수 확인용 (배포 후 삭제) */
 export async function GET() {
@@ -54,15 +55,6 @@ export async function POST(request: NextRequest) {
         // 상떼 여부에 따른 용량 계산 (히스토리에 용량이 없으므로 현재 requests 설정 or 기본값 참고)
         const adminCapacity = 1;
         const towerCapacity = requestsResult.data.sante_opt_out ? 3 : 2;
-
-        const stripTime = (nameStr: string) => {
-            const parts = nameStr.split(' ');
-            const last = parts[parts.length - 1];
-            if (/^\d{1,2}:\d{2}$/.test(last) || last === '수동입력') {
-                return parts.slice(0, -1).join(' ');
-            }
-            return nameStr;
-        };
 
         const totalOccupied = entry.admin.length + entry.tower.length;
         const totalCapacity = adminCapacity + towerCapacity;

@@ -28,6 +28,22 @@ function getTargetDate() {
     return formatDate(target);
 }
 
+/** 평일 00:00~00:05 KST 사이 신청 차단 여부 (클라이언트용) */
+function isApplicationClosed(): { closed: boolean; message: string } {
+    const kst = getKST();
+    const day = kst.getDay();
+    const hour = kst.getHours();
+    const minute = kst.getMinutes();
+
+    if (day === 0 || day === 6) return { closed: false, message: '' };
+
+    if (hour === 0 && minute < 5) {
+        return { closed: true, message: '자정 마감 후 배정 처리 중입니다. 00:05 이후 다시 신청해주세요.' };
+    }
+
+    return { closed: false, message: '' };
+}
+
 export default function MainPage({ onAdmin }: MainPageProps) {
     const [data, setData] = useState<{ users: User[]; requests: RequestsData; history: HistoryEntry[] } | null>(null);
     const [loading, setLoading] = useState(true);
@@ -45,6 +61,7 @@ export default function MainPage({ onAdmin }: MainPageProps) {
     const now = getKST();
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     const targetDay = dayNames[new Date(targetDate).getDay()];
+    const cutoff = isApplicationClosed();
 
     const fetchData = useCallback(async () => {
         try {
@@ -205,6 +222,12 @@ export default function MainPage({ onAdmin }: MainPageProps) {
             </nav>
 
             <main className="animate-fade-in">
+                {activeTab === 'apply' && cutoff.closed && (
+                    <div className="alert-error mb-4 text-center font-bold">
+                        {cutoff.message}
+                    </div>
+                )}
+
                 {activeTab === 'apply' && (
                     <div className="space-y-6">
                         {/* 3 Action Cards */}
@@ -259,10 +282,10 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                     </select>
                                     <button
                                         onClick={handleApply}
-                                        disabled={!selectedUser}
+                                        disabled={!selectedUser || cutoff.closed}
                                         className="btn-primary w-full py-5 text-lg"
                                     >
-                                        지금 신청하기
+                                        {cutoff.closed ? '배정 처리 중' : '지금 신청하기'}
                                     </button>
                                 </div>
                             )}
@@ -324,10 +347,10 @@ export default function MainPage({ onAdmin }: MainPageProps) {
                                         </div>
                                         <button
                                             onClick={handleGuestApply}
-                                            disabled={!guestForm.name || !guestForm.researcher}
+                                            disabled={!guestForm.name || !guestForm.researcher || cutoff.closed}
                                             className="w-full py-5 bg-secondary-600 text-white rounded-button font-black text-lg shadow-lg shadow-secondary-100 hover:bg-secondary-700 transition-all active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
-                                            방문 주차 신청하기
+                                            {cutoff.closed ? '배정 처리 중' : '방문 주차 신청하기'}
                                         </button>
                                     </div>
                                 </div>

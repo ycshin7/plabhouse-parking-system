@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadFromGithub, saveToGithub } from '@/lib/github';
 import { User, RequestsData, HistoryEntry } from '@/types';
 import { runAllocation, stripTime } from '@/lib/allocation';
-import { getKSTDateString } from '@/lib/kst';
+import { getKSTNow, getKSTDateString } from '@/lib/kst';
 
 const DEFAULT_REQUESTS: RequestsData = {
     target_date: '',
@@ -12,19 +12,26 @@ const DEFAULT_REQUESTS: RequestsData = {
 };
 
 /**
- * POST /api/allocate
- * 배정 알고리즘 실행 (어드민 전용)
- * body: { adminKey: string, targetDate: string }
+ * GET /api/cron/allocate
+ * Vercel Cron으로 호출되는 자동 배정 엔드포인트
+ * 매일 00:01 KST (15:01 UTC) 실행
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { adminKey, targetDate } = body;
+        // CRON_SECRET 검증
+        const authHeader = request.headers.get('authorization');
+        const cronSecret = process.env.CRON_SECRET;
+        if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+            return NextResponse.json({ error: '권한이 없습니다.' }, { status: 401 });
+        }
 
-        // 어드민 키 검증
-        const validKey = process.env.ADMIN_KEY;
-        if (validKey && adminKey !== validKey) {
-            return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
+        const kst = getKSTNow();
+        const today = getKSTDateString();
+        const day = kst.getDay();
+
+        // 주말이면 skip
+        if (day === 0 || day === 6) {
+            return NextResponse.json({ skipped: true, reason: '주말은 배정하지 않습니다.', date: today });
         }
 
         // 데이터 로드
@@ -38,19 +45,15 @@ export async function POST(request: NextRequest) {
         const { data: requestsData, sha: requestsSha } = requestsResult;
         const { data: history, sha: historySha } = historyResult;
 
-        // 중복 배정 방지
-        const today = targetDate || getKSTDateString();
-
+        // 이미 오늘 배정이 완료되었으면 skip (엔트리 존재 자체로 판단)
         const existingEntry = history.find((h) => h.date === today);
-        if (existingEntry && existingEntry.slack_notified) {
-            return NextResponse.json({
-                error: `${today} 배정이 이미 완료되었습니다.`,
-                existing: existingEntry,
-            }, { status: 409 });
+        if (existingEntry) {
+            return NextResponse.json({ skipped: true, reason: `${today} 배정이 이미 완료되었습니다.`, date: today });
         }
 
+        // 신청자가 없으면 skip
         if (!requestsData.applicants?.length && !requestsData.guests?.length) {
-            return NextResponse.json({ error: '신청 인원이 없습니다.' }, { status: 400 });
+            return NextResponse.json({ skipped: true, reason: '신청 인원이 없습니다.', date: today });
         }
 
         // 배정 실행
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
                 });
                 slackNotified = true;
             } catch (e) {
-                console.error('Slack notification failed:', e);
+                console.error('[cron] Slack notification failed:', e);
             }
         }
 
@@ -137,13 +140,13 @@ export async function POST(request: NextRequest) {
 
         // 동시 저장 (단일 저장으로 SHA 이슈 해결)
         const [historySaved, requestsSaved, usersSaved] = await Promise.all([
-            saveToGithub('history.json', newHistory, historySha || '', `자동 배정: ${today}`),
-            saveToGithub('requests.json', updatedRequests, requestsSha || '', `신청 초기화: ${today}`),
-            saveToGithub('users.json', users, usersResult.sha || '', `마지막주차일 업데이트: ${today}`),
+            saveToGithub('history.json', newHistory, historySha || '', `[cron] 자동 배정: ${today}`),
+            saveToGithub('requests.json', updatedRequests, requestsSha || '', `[cron] 신청 초기화: ${today}`),
+            saveToGithub('users.json', users, usersResult.sha || '', `[cron] 마지막주차일 업데이트: ${today}`),
         ]);
 
         if (!historySaved || !requestsSaved || !usersSaved) {
-            console.error(`[/api/allocate] 저장 실패 - history:${historySaved} requests:${requestsSaved} users:${usersSaved}`);
+            console.error(`[cron] 저장 실패 - history:${historySaved} requests:${requestsSaved} users:${usersSaved}`);
             if (!historySaved) {
                 return NextResponse.json({ error: '배정 결과 저장에 실패했습니다.' }, { status: 500 });
             }
@@ -151,13 +154,15 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
+            date: today,
             result: {
-                date: today,
-                ...result,
+                admin: result.admin,
+                tower: result.tower,
+                wait: result.wait,
             },
         });
     } catch (error) {
-        console.error('[/api/allocate] 오류:', error);
-        return NextResponse.json({ error: '배정 처리 중 오류가 발생했습니다.' }, { status: 500 });
+        console.error('[/api/cron/allocate] 오류:', error);
+        return NextResponse.json({ error: '자동 배정 처리 중 오류가 발생했습니다.' }, { status: 500 });
     }
 }

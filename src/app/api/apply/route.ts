@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadFromGithub, saveToGithub } from '@/lib/github';
 import { RequestsData } from '@/types';
+import { isApplicationClosed } from '@/lib/kst';
 
 const DEFAULT_REQUESTS: RequestsData = {
     target_date: '',
@@ -16,6 +17,11 @@ const DEFAULT_REQUESTS: RequestsData = {
  */
 export async function POST(request: NextRequest) {
     try {
+        const cutoff = isApplicationClosed();
+        if (cutoff.closed) {
+            return NextResponse.json({ error: cutoff.message }, { status: 403 });
+        }
+
         const body = await request.json();
         const { name, timestamp } = body;
 

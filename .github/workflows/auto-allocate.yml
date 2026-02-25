@@ -1,11 +1,8 @@
 name: 🅿️ 자동 주차 배정 (Vercel)
 
 on:
-  schedule:
-    # 매일 00:01 KST (= 15:01 UTC 전날)에 실행
-    # 월~금 00:01 KST에 배정 결과 발표
-    # 일~목 15:01 UTC
-    - cron: '1 15 * * 0-4'
+  # Vercel Cron으로 대체됨 (vercel.json → /api/cron/allocate)
+  # schedule 중복 실행 방지를 위해 비활성화
   workflow_dispatch:
 
 jobs:

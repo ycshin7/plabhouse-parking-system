@@ -777,9 +777,33 @@ export default function AdminPage({ onBack }: AdminPageProps) {
                                             const name = typeof a === 'string' ? a : a.name;
                                             const time = typeof a === 'object' && a.timestamp ? new Date(a.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '';
                                             return (
-                                                <div key={name} className="px-4 py-2 bg-surface-card rounded-input text-sm font-bold text-ink-secondary border border-line-light shadow-sm flex items-center gap-2">
+                                                <div key={name} className="px-4 py-2 bg-surface-card rounded-input text-sm font-bold text-ink-secondary border border-line-light shadow-sm flex items-center gap-2 group">
                                                     {name}
                                                     {time && <span className="tag-blue text-[9px]">{time}</span>}
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!confirm(`${name}님의 주차 신청을 취소하시겠습니까?`)) return;
+                                                            try {
+                                                                const res = await fetch('/api/apply', {
+                                                                    method: 'DELETE',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ name }),
+                                                                });
+                                                                const result = await res.json();
+                                                                if (res.ok) {
+                                                                    fetchData();
+                                                                } else {
+                                                                    alert(result.error || '취소 처리에 실패했습니다.');
+                                                                }
+                                                            } catch {
+                                                                alert('취소 처리 중 오류가 발생했습니다.');
+                                                            }
+                                                        }}
+                                                        className="ml-1 w-5 h-5 flex items-center justify-center rounded-full text-ink-placeholder hover:text-danger-500 hover:bg-danger-50 transition-all opacity-0 group-hover:opacity-100"
+                                                        title={`${name} 신청 취소`}
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </button>
                                                 </div>
                                             );
                                         })}
