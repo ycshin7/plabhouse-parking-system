@@ -14,7 +14,16 @@
       "timestamp": "2026-02-25T02:26:48.000Z"
     }
   ],
-  "guests": [],
+  "guests": [
+    {
+      "name": "ddd",
+      "car_type": "SUV",
+      "location": [
+        "상관없음"
+      ],
+      "timestamp": "2026-02-25T02:26:53.463Z"
+    }
+  ],
   "sante_opt_out": true,
   "sante_status_updated_at": "2026-02-25T02:26:20.493Z"
 }
