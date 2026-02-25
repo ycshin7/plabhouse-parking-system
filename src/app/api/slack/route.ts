@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
         const adminRemaining = adminCapacity - entry.admin.length;
         const towerRemaining = towerCapacity - entry.tower.length;
 
-        let slackMsg = `📅 **${date} (${targetWeekday}) 주차 배정 결과**\n\n` +
-            `🅿️ **주차 공간 현황**\n` +
+        let slackMsg = `📅 *${date} (${targetWeekday}) 주차 배정 결과*\n\n` +
+            `🅿️ *주차 공간 현황*\n` +
             `• 전체: ${totalOccupied}/${totalCapacity} (남은 공간: ${totalRemaining})\n` +
             `• 관리실: ${entry.admin.length}/${adminCapacity} (남은 공간: ${adminRemaining})\n` +
             `• 타워: ${entry.tower.length}/${towerCapacity} (남은 공간: ${towerRemaining})\n\n` +
-            `🏢 **관리실 배정**`;
+            `🏢 *관리실 배정*`;
 
         if (entry.admin.length > 0) {
             entry.admin.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
             slackMsg += `\n• (배정 없음)`;
         }
 
-        slackMsg += `\n\n🅿️ **타워 배정**`;
+        slackMsg += `\n\n🅿️ *타워 배정*`;
         if (entry.tower.length > 0) {
             entry.tower.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
         } else {
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (entry.wait && entry.wait.length > 0) {
-            slackMsg += `\n\n⏳ **대기 인원** (우선순위에서 밀림)`;
+            slackMsg += `\n\n⏳ *대기 인원* (우선순위에서 밀림)`;
             entry.wait.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
         }
 
