@@ -1,29 +1,7 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "라크",
-      "timestamp": "2026-02-24T10:28:06.082Z"
-    },
-    {
-      "name": "히로",
-      "timestamp": "2026-02-25T02:26:13.901Z"
-    },
-    {
-      "name": "뚜비",
-      "timestamp": "2026-02-25T02:26:48.000Z"
-    }
-  ],
-  "guests": [
-    {
-      "name": "ddd",
-      "car_type": "SUV",
-      "location": [
-        "상관없음"
-      ],
-      "timestamp": "2026-02-25T02:26:53.463Z"
-    }
-  ],
+  "applicants": [],
+  "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-02-25T02:26:55.229Z"
 }
