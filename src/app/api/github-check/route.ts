@@ -6,15 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { adminKey } = body;
-
-        // 어드민 키 검증
-        const validKey = process.env.ADMIN_KEY;
-        if (validKey && adminKey !== validKey) {
-            return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
-        }
-
         const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
         const GITHUB_OWNER = process.env.GITHUB_OWNER;
         const GITHUB_REPO = process.env.GITHUB_REPO;

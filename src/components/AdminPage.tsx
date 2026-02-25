@@ -19,8 +19,6 @@ export default function AdminPage({ onBack }: AdminPageProps) {
     const [data, setData] = useState<{ users: User[]; requests: RequestsData; history: HistoryEntry[] } | null>(null);
     const [activeTab, setActiveTab] = useState<'result' | 'users' | 'history' | 'data'>('result');
     const [loading, setLoading] = useState(true);
-    const [adminKey, setAdminKey] = useState('');
-    const [showKeyInput, setShowKeyInput] = useState(false);
 
     // User Management State
     const [editingUserIndex, setEditingUserIndex] = useState<number | null>(null);
@@ -70,21 +68,16 @@ export default function AdminPage({ onBack }: AdminPageProps) {
     }, [data]);
 
     const handleAllocate = async () => {
-        if (!adminKey) {
-            setShowKeyInput(true);
-            return;
-        }
         try {
             const res = await fetch('/api/allocate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminKey }),
+                body: JSON.stringify({}),
             });
             const json = await res.json();
             if (res.ok) {
                 alert('배정이 완료되었습니다!');
                 fetchData();
-                setShowKeyInput(false);
             } else {
                 alert(json.error || '배정 중 오류 발생');
             }
@@ -94,15 +87,11 @@ export default function AdminPage({ onBack }: AdminPageProps) {
     };
 
     const handleSendSlack = async (date: string) => {
-        if (!adminKey) {
-            setShowKeyInput(true);
-            return;
-        }
         try {
             const res = await fetch('/api/slack', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, adminKey }),
+                body: JSON.stringify({ date }),
             });
             const json = await res.json();
             if (res.ok) {
@@ -227,16 +216,12 @@ export default function AdminPage({ onBack }: AdminPageProps) {
     };
 
     const handleCheckGithub = async () => {
-        if (!adminKey) {
-            setShowKeyInput(true);
-            return;
-        }
         setIsCheckingGithub(true);
         try {
             const res = await fetch('/api/github-check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminKey }),
+                body: JSON.stringify({}),
             });
             const json = await res.json();
             setGithubCheckResult(json);
@@ -308,28 +293,6 @@ export default function AdminPage({ onBack }: AdminPageProps) {
                     </button>
                 ))}
             </nav>
-
-            {/* Admin Key Input */}
-            {showKeyInput && (
-                <div className="mb-6 p-4 card !rounded-input border-primary-100 animate-fade-in">
-                    <label className="input-label text-primary-400 mb-2 block">Admin Key 입력</label>
-                    <div className="flex gap-2">
-                        <input
-                            type="password"
-                            placeholder="Admin Key를 입력하세요"
-                            value={adminKey}
-                            onChange={(e) => setAdminKey(e.target.value)}
-                            className="input flex-1 text-sm"
-                        />
-                        <button
-                            onClick={() => { setShowKeyInput(false); setAdminKey(''); }}
-                            className="btn-ghost text-xs"
-                        >
-                            취소
-                        </button>
-                    </div>
-                </div>
-            )}
 
             <main className="animate-fade-in">
                 {/* ================================

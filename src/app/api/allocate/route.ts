@@ -19,13 +19,7 @@ const DEFAULT_REQUESTS: RequestsData = {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { adminKey, targetDate } = body;
-
-        // 어드민 키 검증
-        const validKey = process.env.ADMIN_KEY;
-        if (validKey && adminKey !== validKey) {
-            return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
-        }
+        const { targetDate } = body;
 
         // 데이터 로드
         const [usersResult, requestsResult, historyResult] = await Promise.all([

@@ -18,13 +18,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { date, adminKey } = body;
-
-        // 어드민 키 검증
-        const validKey = process.env.ADMIN_KEY;
-        if (validKey && adminKey !== validKey) {
-            return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
-        }
+        const { date } = body;
 
         if (!date) {
             return NextResponse.json({ error: '날짜가 지정되지 않았습니다.' }, { status: 400 });
