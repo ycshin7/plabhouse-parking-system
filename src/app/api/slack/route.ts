@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadFromGithub, saveToGithub } from '@/lib/github';
 import { HistoryEntry, RequestsData } from '@/types';
 
+/** 임시 디버그: 환경변수 확인용 (배포 후 삭제) */
+export async function GET() {
+    const url = process.env.SLACK_WEBHOOK_URL || '(미설정)';
+    const masked = url.length > 20 ? url.slice(0, 30) + '...' + url.slice(-10) : url;
+    return NextResponse.json({ webhook_url_masked: masked, has_admin_key: !!process.env.ADMIN_KEY });
+}
+
 /**
  * POST /api/slack
  * 특정 날짜의 배정 결과를 슬랙으로 전송합니다.
