@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-02-27",
+    "admin": [],
+    "tower": [
+      "루니 (SEDAN) 19:52",
+      "뉴진 (SEDAN) 21:05",
+      "시안 (SEDAN) 23:22"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-02-26T15:09:23.191Z"
+  },
+  {
     "date": "2026-02-26",
     "admin": [
       "피치 (SUV) 23:12"
