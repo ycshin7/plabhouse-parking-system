@@ -18,19 +18,24 @@ const DEFAULT_REQUESTS: RequestsData = {
  */
 export async function GET(request: NextRequest) {
     try {
+        console.log('[cron] === 크론 배정 시작 ===');
+
         // CRON_SECRET 검증
         const authHeader = request.headers.get('authorization');
         const cronSecret = process.env.CRON_SECRET;
         if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+            console.error('[cron] 인증 실패');
             return NextResponse.json({ error: '권한이 없습니다.' }, { status: 401 });
         }
 
         const kst = getKSTNow();
         const today = getKSTDateString();
         const day = kst.getDay();
+        console.log(`[cron] KST: ${today}, 요일: ${day}, UTC: ${new Date().toISOString()}`);
 
         // 주말이면 skip
         if (day === 0 || day === 6) {
+            console.log(`[cron] 주말 skip (day=${day})`);
             return NextResponse.json({ skipped: true, reason: '주말은 배정하지 않습니다.', date: today });
         }
 
@@ -45,14 +50,18 @@ export async function GET(request: NextRequest) {
         const { data: requestsData, sha: requestsSha } = requestsResult;
         const { data: history, sha: historySha } = historyResult;
 
+        console.log(`[cron] 데이터 로드 완료 - users: ${users.length}명, applicants: ${requestsData.applicants?.length || 0}명, guests: ${requestsData.guests?.length || 0}명, history SHA: ${historySha ? '있음' : '없음'}`);
+
         // 이미 오늘 배정이 완료되었으면 skip (엔트리 존재 자체로 판단)
         const existingEntry = history.find((h) => h.date === today);
         if (existingEntry) {
+            console.log(`[cron] 이미 배정 완료 skip: ${today}`);
             return NextResponse.json({ skipped: true, reason: `${today} 배정이 이미 완료되었습니다.`, date: today });
         }
 
         // 신청자가 없으면 skip
         if (!requestsData.applicants?.length && !requestsData.guests?.length) {
+            console.log('[cron] 신청자 없음 skip');
             return NextResponse.json({ skipped: true, reason: '신청 인원이 없습니다.', date: today });
         }
 
@@ -98,15 +107,22 @@ export async function GET(request: NextRequest) {
             }
 
             try {
-                await fetch(webhookUrl, {
+                const slackRes = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: slackMsg }),
                 });
-                slackNotified = true;
+                if (slackRes.ok) {
+                    slackNotified = true;
+                } else {
+                    const errText = await slackRes.text();
+                    console.error(`[cron] Slack 전송 실패: ${slackRes.status} - ${errText}`);
+                }
             } catch (e) {
-                console.error('[cron] Slack notification failed:', e);
+                console.error('[cron] Slack 네트워크 오류:', e);
             }
+        } else {
+            console.error('[cron] SLACK_WEBHOOK_URL 환경변수가 설정되지 않았습니다.');
         }
 
         // 히스토리 엔트리 생성 (Slack 결과 반영)
@@ -152,9 +168,12 @@ export async function GET(request: NextRequest) {
             console.error(`[cron] 저장 부분 실패 - requests:${requestsSaved} users:${usersSaved}`);
         }
 
+        console.log(`[cron] === 배정 완료 === date: ${today}, slack: ${slackNotified}, history: ${historySaved}, requests: ${requestsSaved}, users: ${usersSaved}`);
+
         return NextResponse.json({
             success: true,
             date: today,
+            slack_notified: slackNotified,
             result: {
                 admin: result.admin,
                 tower: result.tower,
