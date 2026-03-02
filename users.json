@@ -2,7 +2,7 @@
   {
     "name": "뚜비",
     "car_type": "SUV",
-    "last_parked_date": "2026-02-12",
+    "last_parked_date": "2026-03-03",
     "car_detail": "",
     "car_plate": "55로5301",
     "car_number": "55로5301",
@@ -48,7 +48,7 @@
     "car_type": "SEDAN",
     "car_detail": "",
     "car_plate": "",
-    "last_parked_date": "2026-02-27",
+    "last_parked_date": "2026-03-03",
     "car_number": "",
     "car_details": ""
   },
@@ -57,7 +57,7 @@
     "car_type": "SEDAN",
     "car_detail": "",
     "car_plate": "",
-    "last_parked_date": "2026-02-09"
+    "last_parked_date": "2026-03-03"
   },
   {
     "name": "피치",
