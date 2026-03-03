@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-03-04",
+    "admin": [
+      "피치 (SUV) 23:24"
+    ],
+    "tower": [
+      "시안 (SEDAN) 17:23",
+      "뉴진 (SEDAN) 18:09"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-03-03T15:36:11.310Z"
+  },
+  {
     "date": "2026-03-03",
     "admin": [
       "뚜비 (SUV) 12:00"
