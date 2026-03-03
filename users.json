@@ -11,7 +11,7 @@
   {
     "name": "시안",
     "car_type": "SEDAN",
-    "last_parked_date": "2026-02-27",
+    "last_parked_date": "2026-03-04",
     "car_detail": "비엔츠",
     "car_plate": ""
   },
@@ -48,7 +48,7 @@
     "car_type": "SEDAN",
     "car_detail": "",
     "car_plate": "",
-    "last_parked_date": "2026-03-03",
+    "last_parked_date": "2026-03-04",
     "car_number": "",
     "car_details": ""
   },
@@ -64,7 +64,7 @@
     "car_type": "SUV",
     "car_detail": "",
     "car_plate": "",
-    "last_parked_date": "2026-02-23"
+    "last_parked_date": "2026-03-04"
   },
   {
     "name": "루니",
