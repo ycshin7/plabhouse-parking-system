@@ -2,6 +2,6 @@
   "target_date": "",
   "applicants": [],
   "guests": [],
-  "sante_opt_out": false,
-  "sante_status_updated_at": "2026-03-03T22:57:47.878Z"
+  "sante_opt_out": true,
+  "sante_status_updated_at": "2026-03-05T00:57:39.239Z"
 }
