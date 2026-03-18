@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-03-19",
+    "admin": [],
+    "tower": [
+      "시안 (SEDAN) 수동입력",
+      "루니 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-03-18",
     "admin": [
       "라크 (SUV) 22:47"
