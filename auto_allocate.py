@@ -98,15 +98,10 @@ def get_kst_time():
 def get_target_date():
     """
     Get target date for parking allocation.
-    - If before 9 AM: today
-    - If after 9 AM: tomorrow
-    - Skip weekends
+    - Constant 24:00 deadline logic: Application is always for the next available weekday.
     """
     now = get_kst_time()
-    if now.hour < 9:
-        target = now.date()
-    else:
-        target = now.date() + timedelta(days=1)
+    target = now.date() + timedelta(days=1)
     
     # Weekend Skip Logic
     if target.weekday() == 5:  # Saturday
@@ -343,8 +338,13 @@ def main():
             return
         
         # Step 2.5: DUPLICATE EXECUTION PREVENTION (History Check)
+        # 🚨 CRITICAL FIX: Load requests.json properly to identify WHICH date we are allocating for!
+        requests_preliminary = load_json(REQUESTS_FILE, {})
+        target_date_str = requests_preliminary.get("target_date")
+        if not target_date_str:
+            target_date_str = str(get_target_date())
+            
         history_preliminary = load_json(HISTORY_FILE, [])
-        target_date_str = str(get_target_date())
         existing_entry = next((h for h in history_preliminary if h["date"] == target_date_str), None)
         
         if existing_entry and existing_entry.get("slack_notified", False):
@@ -374,8 +374,13 @@ def main():
             "sante_opt_out": False
         })
         
-        target_date = get_target_date()
-        today_str = str(target_date)
+        target_date_str = requests_data.get("target_date")
+        if not target_date_str:
+            target_date = get_target_date()
+            today_str = str(target_date)
+        else:
+            today_str = target_date_str
+            target_date = datetime.strptime(today_str, "%Y-%m-%d").date()
         
         # Step 6: Check if already allocated
         history_today = next((h for h in history if h["date"] == today_str), None)
