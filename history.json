@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-03-25",
+    "admin": [
+      "피치 (SUV) 수동입력"
+    ],
+    "tower": [
+      "시안 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-03-24",
     "admin": [
       "뚜비 (SUV) 수동입력"
