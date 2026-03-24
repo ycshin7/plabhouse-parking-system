@@ -5,7 +5,8 @@
       "뚜비 (SUV) 수동입력"
     ],
     "tower": [
-      "시안 (SEDAN) 수동입력"
+      "시안 (SEDAN) 수동입력",
+      "뉴진 (SEDAN) 수동입력"
     ],
     "wait": [],
     "slack_notified": true
