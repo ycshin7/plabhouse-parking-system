@@ -1,11 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "피치",
-      "timestamp": "2026-03-25T14:44:45.075Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-03-23T08:01:08.818Z"
