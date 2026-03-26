@@ -11,6 +11,10 @@
         {
             "path": "/api/cron/allocate",
             "schedule": "1 15 * * 0-4"
+        },
+        {
+            "path": "/api/cron/allocate",
+            "schedule": "15 15 * * 0-4"
         }
     ],
     "headers": [

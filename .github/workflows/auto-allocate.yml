@@ -1,8 +1,12 @@
-name: 🅿️ 자동 주차 배정 (Vercel)
+name: 🅿️ 자동 주차 배정 (백업)
 
 on:
-  # Vercel Cron으로 대체됨 (vercel.json → /api/cron/allocate)
-  # schedule 중복 실행 방지를 위해 비활성화
+  schedule:
+    # Vercel Cron이 지연될 경우를 대비한 백업 (3중)
+    # UTC 기준 → KST = UTC + 9
+    - cron: '1 15 * * 0-4'   # KST 00:01 (1차 - Vercel과 동시)
+    - cron: '10 15 * * 0-4'  # KST 00:10 (2차 백업)
+    - cron: '30 15 * * 0-4'  # KST 00:30 (3차 백업)
   workflow_dispatch:
 
 jobs:
@@ -11,25 +15,26 @@ jobs:
     steps:
       - name: 배정 API 호출
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.VERCEL_APP_URL }}/api/allocate" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"adminKey\": \"${{ secrets.ADMIN_KEY }}\",
-              \"targetDate\": \"$(TZ=Asia/Seoul date +%Y-%m-%d)\"
-            }")
-          
+          echo "⏰ 배정 API 호출 시작: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S KST')"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+            "${{ secrets.VERCEL_APP_URL }}/api/cron/allocate" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | head -n -1)
-          
-          echo "Status Code: $HTTP_CODE"
+
+          echo "Status: $HTTP_CODE"
           echo "Response: $BODY"
-          
+
           if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ 배정 완료!"
-          elif echo "$BODY" | grep -q "already exists"; then
-            echo "ℹ️ 이미 배정 완료된 날짜입니다. (정상)"
+            # 이미 배정 완료된 경우도 200 (skipped:true)
+            if echo "$BODY" | grep -q '"skipped"'; then
+              echo "ℹ️ 이미 처리됨 (정상)"
+            else
+              echo "✅ 배정 완료!"
+            fi
           else
-            echo "❌ 배정 실패: $BODY"
+            echo "❌ 배정 실패 (HTTP $HTTP_CODE)"
             exit 1
           fi
