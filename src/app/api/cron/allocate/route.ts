@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
 
         console.log(`[cron] 데이터 로드 완료 - users: ${users.length}명, applicants: ${requestsData.applicants?.length || 0}명, guests: ${requestsData.guests?.length || 0}명, history SHA: ${historySha ? '있음' : '없음'}`);
 
-        // 이미 오늘 배정이 완료되었으면 skip (엔트리 존재 자체로 판단)
+        // 이미 오늘 배정이 완료되었으면 skip (slack_notified=true인 경우만)
         const existingEntry = history.find((h) => h.date === today);
-        if (existingEntry) {
-            console.log(`[cron] 이미 배정 완료 skip: ${today}`);
+        if (existingEntry && existingEntry.slack_notified) {
+            console.log(`[cron] 이미 배정+알림 완료 skip: ${today}`);
             return NextResponse.json({ skipped: true, reason: `${today} 배정이 이미 완료되었습니다.`, date: today });
         }
 
