@@ -52,11 +52,73 @@ export async function GET(request: NextRequest) {
 
         console.log(`[cron] 데이터 로드 완료 - users: ${users.length}명, applicants: ${requestsData.applicants?.length || 0}명, guests: ${requestsData.guests?.length || 0}명, history SHA: ${historySha ? '있음' : '없음'}`);
 
-        // 이미 오늘 배정이 완료되었으면 skip (slack_notified=true인 경우만)
+        // 이미 오늘 배정이 완료되었으면 skip, 단 slack 알림이 안갔으면 재시도
         const existingEntry = history.find((h) => h.date === today);
-        if (existingEntry && existingEntry.slack_notified) {
-            console.log(`[cron] 이미 배정+알림 완료 skip: ${today}`);
-            return NextResponse.json({ skipped: true, reason: `${today} 배정이 이미 완료되었습니다.`, date: today });
+        if (existingEntry) {
+            if (existingEntry.slack_notified) {
+                console.log(`[cron] 이미 배정+알림 완료 skip: ${today}`);
+                return NextResponse.json({ skipped: true, reason: `${today} 배정이 이미 완료되었습니다.`, date: today });
+            } else {
+                console.log(`[cron] 배정은 되었으나 알림 실패. 슬랙 알림 재시도: ${today}`);
+                
+                let slackNotified = false;
+                const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+                if (webhookUrl) {
+                    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                    const targetWeekday = dayNames[new Date(today).getDay()];
+                    
+                    const adminCapacity = 1;
+                    const towerCapacity = requestsData.sante_opt_out ? 3 : 2;
+
+                    let slackMsg = `📅 *${today} (${targetWeekday}) 주차 배정 결과*\n\n` +
+                        `🅿️ *주차 공간 현황*\n` +
+                        `• 전체: ${existingEntry.admin.length + existingEntry.tower.length}/${adminCapacity + towerCapacity}\n` +
+                        `• 관리실: ${existingEntry.admin.length}/${adminCapacity}\n` +
+                        `• 타워: ${existingEntry.tower.length}/${towerCapacity}\n\n` +
+                        `🏢 *관리실 배정*`;
+
+                    if (existingEntry.admin.length > 0) {
+                        existingEntry.admin.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
+                    } else {
+                        slackMsg += `\n• (배정 없음)`;
+                    }
+
+                    slackMsg += `\n\n🅿️ *타워 배정*`;
+                    if (existingEntry.tower.length > 0) {
+                        existingEntry.tower.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
+                    } else {
+                        slackMsg += `\n• (배정 없음)`;
+                    }
+
+                    if (existingEntry.wait.length > 0) {
+                        slackMsg += `\n\n⏳ *대기 인원*`;
+                        existingEntry.wait.forEach(name => slackMsg += `\n• ${stripTime(name)}`);
+                    }
+
+                    try {
+                        const slackRes = await fetch(webhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: slackMsg }),
+                        });
+                        if (slackRes.ok) {
+                            slackNotified = true;
+                        } else {
+                            console.error(`[cron] Slack 재전송 실패: ${slackRes.status} - ${await slackRes.text()}`);
+                        }
+                    } catch (e) {
+                        console.error('[cron] Slack 네트워크 오류:', e);
+                    }
+                }
+
+                if (slackNotified) {
+                    existingEntry.slack_notified = true;
+                    const historySaved = await saveToGithub('history.json', history, historySha || '', `[cron] 자동 배정 Slack 재알림: ${today}`);
+                    return NextResponse.json({ success: true, message: '슬랙 알림 재전송 성공', historySaved, date: today });
+                } else {
+                    return NextResponse.json({ error: '슬랙 알림 재전송 실패' }, { status: 500 });
+                }
+            }
         }
 
         // 신청자가 없으면 skip
