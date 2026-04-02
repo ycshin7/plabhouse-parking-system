@@ -4,7 +4,9 @@
     "admin": [
       "여규현 / 구장주 (미누) (SUV) 10:52"
     ],
-    "tower": [],
+    "tower": [
+      "시안 (SEDAN) 수동입력"
+    ],
     "wait": [],
     "slack_notified": true,
     "created_at": "2026-04-01T15:34:43.821Z"
