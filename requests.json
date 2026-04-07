@@ -1,6 +1,11 @@
 {
   "target_date": "",
-  "applicants": [],
+  "applicants": [
+    {
+      "name": "뉴진",
+      "timestamp": "2026-04-07T08:21:48.621Z"
+    }
+  ],
   "guests": [
     {
       "name": "최우석 이사(잔디시공) (뮤츠)",
