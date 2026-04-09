@@ -15,6 +15,6 @@
     }
   ],
   "guests": [],
-  "sante_opt_out": true,
-  "sante_status_updated_at": "2026-04-09T13:31:13.636Z"
+  "sante_opt_out": false,
+  "sante_status_updated_at": "2026-04-09T13:31:17.637Z"
 }
