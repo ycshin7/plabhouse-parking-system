@@ -1,19 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "뿌까",
-      "timestamp": "2026-04-09T10:37:57.397Z"
-    },
-    {
-      "name": "시안",
-      "timestamp": "2026-04-09T11:52:39.741Z"
-    },
-    {
-      "name": "루니",
-      "timestamp": "2026-04-09T12:23:54.751Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-04-09T13:31:17.637Z"
