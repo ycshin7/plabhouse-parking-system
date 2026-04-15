@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-04-16",
+    "admin": [
+      "라크 (SUV) 22:46"
+    ],
+    "tower": [
+      "시안 (SEDAN) 18:08"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-04-15T15:09:57.599Z"
+  },
+  {
     "date": "2026-04-15",
     "admin": [
       "피치 (SUV) 23:29"
