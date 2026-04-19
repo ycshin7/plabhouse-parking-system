@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-04-20",
+    "admin": [
+      "라크 (SUV) 수동입력"
+    ],
+    "tower": [
+      "시안 (SEDAN) 수동입력",
+      "뉴진 (SEDAN) 수동입력",
+      "피르 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-04-17",
     "admin": [],
     "tower": [
