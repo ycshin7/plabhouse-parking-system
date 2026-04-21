@@ -13,9 +13,12 @@
   },
   {
     "date": "2026-04-21",
-    "admin": [],
+    "admin": [
+      "히로 (SUV) 수동입력"
+    ],
     "tower": [
-      "시안 (SEDAN) 21:18"
+      "시안 (SEDAN) 21:18",
+      "뉴진 (SEDAN) 수동입력"
     ],
     "wait": [],
     "slack_notified": true,
