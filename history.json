@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-04-23",
+    "admin": [],
+    "tower": [
+      "루니 (SEDAN) 17:01",
+      "피르 (SEDAN) 18:31"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-04-22T15:56:48.044Z"
+  },
+  {
     "date": "2026-04-22",
     "admin": [
       "피치 (SUV) 22:46"
