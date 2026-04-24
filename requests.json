@@ -9,6 +9,14 @@
         "타워"
       ],
       "timestamp": "2026-04-24T07:21:12.110Z"
+    },
+    {
+      "name": "기계식 주차 이용 불가_2 (번즈)",
+      "car_type": "SEDAN",
+      "location": [
+        "타워"
+      ],
+      "timestamp": "2026-04-24T07:21:28.068Z"
     }
   ],
   "sante_opt_out": false,
