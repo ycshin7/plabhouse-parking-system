@@ -1,7 +1,16 @@
 {
   "target_date": "",
   "applicants": [],
-  "guests": [],
+  "guests": [
+    {
+      "name": "기계식 주차 이용 불가_1 (번즈)",
+      "car_type": "SEDAN",
+      "location": [
+        "타워"
+      ],
+      "timestamp": "2026-04-24T07:21:12.110Z"
+    }
+  ],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-04-23T08:12:08.390Z"
 }
