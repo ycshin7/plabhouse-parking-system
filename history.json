@@ -1,5 +1,18 @@
 [
   {
+    "date": "2026-04-28",
+    "admin": [
+      "박수성 (뮤츠) (SUV) 17:41"
+    ],
+    "tower": [
+      "피르 (SEDAN) 17:56",
+      "시안 (SEDAN) 17:08"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-04-27T15:04:47.035Z"
+  },
+  {
     "date": "2026-04-27",
     "admin": [
       "뉴진 (SEDAN) 수동입력"
