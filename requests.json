@@ -17,6 +17,14 @@
         "타워"
       ],
       "timestamp": "2026-04-28T01:36:58.142Z"
+    },
+    {
+      "name": "김홍조(제로프스포츠) (뮤츠)",
+      "car_type": "SUV",
+      "location": [
+        "관리실"
+      ],
+      "timestamp": "2026-04-28T03:24:40.472Z"
     }
   ],
   "sante_opt_out": false,
