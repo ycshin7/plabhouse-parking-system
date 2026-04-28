@@ -1,7 +1,16 @@
 {
   "target_date": "",
   "applicants": [],
-  "guests": [],
+  "guests": [
+    {
+      "name": "블루 창문 공사 업체 (릴라)",
+      "car_type": "SUV",
+      "location": [
+        "관리실"
+      ],
+      "timestamp": "2026-04-28T01:36:46.446Z"
+    }
+  ],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-04-23T08:12:08.390Z"
 }
