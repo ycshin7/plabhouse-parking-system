@@ -9,6 +9,14 @@
         "관리실"
       ],
       "timestamp": "2026-04-28T01:36:46.446Z"
+    },
+    {
+      "name": "블루 창문 공사 업체 (릴라)",
+      "car_type": "SEDAN",
+      "location": [
+        "타워"
+      ],
+      "timestamp": "2026-04-28T01:36:58.142Z"
     }
   ],
   "sante_opt_out": false,
