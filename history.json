@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-05-07",
+    "admin": [],
+    "tower": [
+      "아키 (SEDAN) 23:44",
+      "시안 (SEDAN) 17:04"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-05-06T15:06:43.136Z"
+  },
+  {
     "date": "2026-05-06",
     "admin": [],
     "tower": [
