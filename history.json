@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-05-21",
+    "admin": [
+      "뿌까 (SUV) 수동입력"
+    ],
+    "tower": [
+      "루니 (SEDAN) 수동입력",
+      "시안 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-05-20",
     "admin": [
       "피치 (SUV) 수동입력"
