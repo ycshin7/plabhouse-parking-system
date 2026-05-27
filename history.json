@@ -4,7 +4,9 @@
     "admin": [
       "뿌까 (SUV) 21:22"
     ],
-    "tower": [],
+    "tower": [
+      "루니 (SEDAN) 수동입력"
+    ],
     "wait": [],
     "slack_notified": true,
     "created_at": "2026-05-27T15:25:33.013Z"
