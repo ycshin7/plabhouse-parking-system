@@ -1,15 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "루니",
-      "timestamp": "2026-05-31T09:10:47.660Z"
-    },
-    {
-      "name": "피치",
-      "timestamp": "2026-05-31T14:13:37.075Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-05-28T23:34:14.077Z"
