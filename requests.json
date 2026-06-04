@@ -1,15 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "뚜비",
-      "timestamp": "2026-06-04T09:01:56.208Z"
-    },
-    {
-      "name": "시안",
-      "timestamp": "2026-06-04T10:49:07.050Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-05-28T23:34:14.077Z"
