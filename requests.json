@@ -1,6 +1,11 @@
 {
   "target_date": "",
-  "applicants": [],
+  "applicants": [
+    {
+      "name": "시안",
+      "timestamp": "2026-06-08T09:46:13.628Z"
+    }
+  ],
   "guests": [
     {
       "name": "박수성/주목 (뮤츠)",
