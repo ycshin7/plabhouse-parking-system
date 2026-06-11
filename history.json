@@ -1,9 +1,12 @@
 [
   {
     "date": "2026-06-12",
-    "admin": [],
+    "admin": [
+      "히로 (SUV) 수동입력"
+    ],
     "tower": [
-      "시안 (SEDAN) 수동입력"
+      "시안 (SEDAN) 수동입력",
+      "피르 (SEDAN) 수동입력"
     ],
     "wait": [],
     "slack_notified": true
