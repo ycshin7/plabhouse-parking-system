@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-06-15",
+    "admin": [],
+    "tower": [
+      "피르 (SEDAN) 23:06",
+      "시안 (SEDAN) 23:39"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-06-14T15:08:57.849Z"
+  },
+  {
     "date": "2026-06-12",
     "admin": [
       "히로 (SUV) 수동입력"
