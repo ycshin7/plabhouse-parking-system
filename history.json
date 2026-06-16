@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-06-17",
+    "admin": [
+      "번즈 (SUV) 23:34"
+    ],
+    "tower": [],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-06-16T15:56:01.193Z"
+  },
+  {
     "date": "2026-06-16",
     "admin": [
       "번즈 (SUV) 22:19"
