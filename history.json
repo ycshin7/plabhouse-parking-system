@@ -4,7 +4,9 @@
     "admin": [
       "번즈 (SUV) 23:34"
     ],
-    "tower": [],
+    "tower": [
+      "시안 (SEDAN) 수동입력"
+    ],
     "wait": [],
     "slack_notified": true,
     "created_at": "2026-06-16T15:56:01.193Z"
