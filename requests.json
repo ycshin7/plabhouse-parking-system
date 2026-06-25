@@ -1,6 +1,11 @@
 {
   "target_date": "",
-  "applicants": [],
+  "applicants": [
+    {
+      "name": "루니",
+      "timestamp": "2026-06-25T08:05:26.279Z"
+    }
+  ],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-06-19T00:50:56.656Z"
