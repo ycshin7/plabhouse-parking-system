@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-07-01",
+    "admin": [
+      "번즈 (SUV) 수동입력"
+    ],
+    "tower": [],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-06-30",
     "admin": [
       "번즈 (SUV) 수동입력"
