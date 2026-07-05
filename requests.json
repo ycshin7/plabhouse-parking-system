@@ -1,27 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "루니",
-      "timestamp": "2026-07-05T08:18:45.547Z"
-    },
-    {
-      "name": "번즈",
-      "timestamp": "2026-07-05T12:06:22.649Z"
-    },
-    {
-      "name": "라크",
-      "timestamp": "2026-07-05T12:09:31.598Z"
-    },
-    {
-      "name": "시안",
-      "timestamp": "2026-07-05T12:55:17.367Z"
-    },
-    {
-      "name": "히로",
-      "timestamp": "2026-07-05T13:36:10.640Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-06-29T03:51:58.059Z"
