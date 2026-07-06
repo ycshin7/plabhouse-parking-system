@@ -2,14 +2,13 @@
   {
     "date": "2026-07-06",
     "admin": [
-      "히로 (SUV) 22:36"
+      "라크 (SUV) 수동입력"
     ],
     "tower": [
       "시안 (SEDAN) 21:55",
       "루니 (SEDAN) 17:18"
     ],
     "wait": [
-      "라크 (SUV) 21:09",
       "번즈 (SUV) 21:06"
     ],
     "slack_notified": true,
