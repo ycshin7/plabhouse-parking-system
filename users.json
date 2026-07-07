@@ -11,14 +11,14 @@
   {
     "name": "시안",
     "car_type": "SEDAN",
-    "last_parked_date": "2026-07-07",
+    "last_parked_date": "2026-07-08",
     "car_detail": "비엔츠",
     "car_plate": ""
   },
   {
     "name": "라크",
     "car_type": "SUV",
-    "last_parked_date": "2026-06-29",
+    "last_parked_date": "2026-07-08",
     "car_detail": "르노",
     "car_plate": ""
   },
