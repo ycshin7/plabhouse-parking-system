@@ -1,6 +1,11 @@
 {
   "target_date": "",
-  "applicants": [],
+  "applicants": [
+    {
+      "name": "루니",
+      "timestamp": "2026-07-08T09:23:19.454Z"
+    }
+  ],
   "guests": [
     {
       "name": "이정구(GSTG) (뮤츠)",
