@@ -1,7 +1,16 @@
 {
   "target_date": "",
   "applicants": [],
-  "guests": [],
+  "guests": [
+    {
+      "name": "이정구(GSTG) (뮤츠)",
+      "car_type": "SUV",
+      "location": [
+        "관리실"
+      ],
+      "timestamp": "2026-07-08T06:46:41.843Z"
+    }
+  ],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-06-29T03:51:58.059Z"
 }
