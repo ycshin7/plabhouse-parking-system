@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-07-16",
+    "admin": [
+      "라크 (SUV) 수동입력"
+    ],
+    "tower": [],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-07-15",
     "admin": [
       "피치 (SUV) 20:55"
