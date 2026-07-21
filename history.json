@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-07-22",
+    "admin": [],
+    "tower": [
+      "루니 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-07-21",
     "admin": [
       "번즈 (SUV) 23:40"
