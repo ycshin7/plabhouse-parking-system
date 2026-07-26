@@ -177,5 +177,12 @@
     "car_number": "",
     "car_details": "",
     "last_parked_date": null
+  },
+  {
+    "name": "뚜비2",
+    "car_type": "SEDAN",
+    "car_number": "319라2847",
+    "car_details": "",
+    "last_parked_date": null
   }
 ]
