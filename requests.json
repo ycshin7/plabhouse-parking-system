@@ -1,6 +1,11 @@
 {
   "target_date": "",
-  "applicants": [],
+  "applicants": [
+    {
+      "name": "라크",
+      "timestamp": "2026-07-28T11:11:06.004Z"
+    }
+  ],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-07-08T11:56:04.483Z"
