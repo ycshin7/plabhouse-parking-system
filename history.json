@@ -2,14 +2,12 @@
   {
     "date": "2026-07-31",
     "admin": [
-      "뚜비 (SUV) 20:39"
+      "피치 (SUV) 수동입력"
     ],
     "tower": [
       "시안 (SEDAN) 23:58"
     ],
-    "wait": [
-      "피치 (SUV) 23:29"
-    ],
+    "wait": [],
     "slack_notified": true,
     "created_at": "2026-07-30T15:56:09.131Z"
   },
