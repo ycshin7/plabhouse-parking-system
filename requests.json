@@ -1,23 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "시안",
-      "timestamp": "2026-08-10T09:05:10.053Z"
-    },
-    {
-      "name": "피르",
-      "timestamp": "2026-08-10T12:58:41.666Z"
-    },
-    {
-      "name": "번즈",
-      "timestamp": "2026-08-10T12:59:35.258Z"
-    },
-    {
-      "name": "쵸비",
-      "timestamp": "2026-08-10T14:32:03.317Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-08-04T23:08:19.435Z"
