@@ -1,15 +1,6 @@
 {
   "target_date": "",
-  "applicants": [
-    {
-      "name": "시안",
-      "timestamp": "2026-09-30T14:20:30.240Z"
-    },
-    {
-      "name": "피치",
-      "timestamp": "2026-09-30T14:23:22.835Z"
-    }
-  ],
+  "applicants": [],
   "guests": [],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-09-28T00:30:00.036Z"
