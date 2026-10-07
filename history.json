@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-10-08",
+    "admin": [],
+    "tower": [
+      "시안 (SEDAN) 수동입력"
+    ],
+    "wait": [],
+    "slack_notified": false
+  },
+  {
     "date": "2026-10-07",
     "admin": [
       "후크 (SUV) 22:44"
