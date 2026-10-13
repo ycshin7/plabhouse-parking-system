@@ -4,7 +4,9 @@
     "admin": [
       "뚜비 (SUV) 20:53"
     ],
-    "tower": [],
+    "tower": [
+      "루니 (SEDAN) 수동입력"
+    ],
     "wait": [],
     "slack_notified": true,
     "created_at": "2026-10-13T15:20:07.078Z"
