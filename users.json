@@ -191,5 +191,12 @@
     "car_number": "",
     "car_details": "",
     "last_parked_date": "2026-08-18"
+  },
+  {
+    "name": "제리 ",
+    "car_type": "SUV",
+    "car_number": "45우 6453",
+    "car_details": "EV3",
+    "last_parked_date": null
   }
 ]
