@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-11-05",
+    "admin": [
+      "제리  (SUV) 08:55"
+    ],
+    "tower": [
+      "시안 (SEDAN) 17:12"
+    ],
+    "wait": [],
+    "slack_notified": true,
+    "created_at": "2026-11-04T15:20:06.816Z"
+  },
+  {
     "date": "2026-11-04",
     "admin": [
       "뚜비 (SUV) 수동입력"
