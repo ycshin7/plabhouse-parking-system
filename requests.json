@@ -14,6 +14,14 @@
         "관리실"
       ],
       "timestamp": "2026-11-26T08:01:36.489Z"
+    },
+    {
+      "name": "큐손님2 (큐)",
+      "car_type": "SUV",
+      "location": [
+        "관리실"
+      ],
+      "timestamp": "2026-11-26T08:05:50.558Z"
     }
   ],
   "sante_opt_out": false,
