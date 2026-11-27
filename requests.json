@@ -1,7 +1,16 @@
 {
   "target_date": "",
   "applicants": [],
-  "guests": [],
+  "guests": [
+    {
+      "name": "조희진/하이픈 (제리 )",
+      "car_type": "SEDAN",
+      "location": [
+        "상관없음"
+      ],
+      "timestamp": "2026-11-27T00:30:15.478Z"
+    }
+  ],
   "sante_opt_out": false,
   "sante_status_updated_at": "2026-11-24T23:31:24.040Z"
 }
